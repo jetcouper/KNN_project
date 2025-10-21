@@ -14,6 +14,6 @@ cercle circonscrit = l'air du cercle fait avec les plus hauts sommets(coins) et 
 cercle donut 
 
 ## Autres matrices (À voir)
-# Rapport de convexité
+### Rapport de convexité
 A / (w*h)
 
