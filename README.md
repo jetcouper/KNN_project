@@ -13,7 +13,6 @@ cercle circonscrit = l'air du cercle fait avec les plus hauts sommets(coins) et 
 ## 3 matrice
 cercle donut 
 
-##Autre matrice (À voir)
-ratio = Périmètre/Aire
+
 
 
