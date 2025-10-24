@@ -9,11 +9,17 @@ cercle circonscrit = l'air du cercle fait avec les plus hauts sommets(coins) et 
 
 (aire forme)/(aire cercle circonscrit)
 *cercle circonscrit --À voir
+###Densité
+D = A/B
+D = Densité
+A = Aire de la forme
+B = Aire du cercle englobant la forme = PI * r^2
+r = Rayon du plus grand segment entre le centroide et tous les points du périmètre
 
 ## 3 matrice
-cercle donut 
+cercle donut
 
 ## Autres matrices (À voir)
-### Rapport de convexité
-A / (w*h)
+
+
 
