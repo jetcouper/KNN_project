@@ -9,6 +9,7 @@ cercle circonscrit = l'air du cercle fait avec les plus hauts sommets(coins) et 
 
 (aire forme)/(aire cercle circonscrit)
 *cercle circonscrit --À voir
+
 ###Densité
 D = A/B
 D = Densité
