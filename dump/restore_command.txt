@@ -1,0 +1,21 @@
+Commande pour restaurer la base de données KlustR
+
+Commande (CMD):
+"C:\Program Files\PostgreSQL\15\bin\pg_restore.exe" --host=localhost --port=5432 --username=postgres --dbname=postgres C:/travail/klustr.dump
+
+--- Attention, ajuster le dossier où se trouve le fichier klustr.dump ------------------------------------------------------^
+
+
+Mot de passe : 
+AAAaaa123
+
+
+pip install psycopg (Obligatoire à la maison)
+
+
+
+
+Ma version(Antoine)
+"C:\Program Files\PostgreSQL\17\bin\pg_restore.exe" --host=localhost --port=5432 --username=postgres --dbname=postgres C:/travail/klustr.dump
+Mot de passe : 
+Yoshi9603
