@@ -1,5 +1,5 @@
 # KNN_project
-
+Pour ouvir le projet, utiliser le fichier klustr_main.py dans \dev\projet.
 
 ## 1er matrice
 c = 1 - (4 * pi *aire) / pi^2
