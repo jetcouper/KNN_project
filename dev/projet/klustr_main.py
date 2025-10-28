@@ -538,43 +538,79 @@ class KlustRDataSourceViewWidget(QWidget):
 
 
 
-class KlustrDataSetViewWidget(QWidget):
-    def __init__(self, klustr_dao, parent=None):
+
+
+
+
+
+class KlustR3DDatasetItem(QComboBox):
+    def __init__(self, parent = None):
         super().__init__(parent)
-        self.klustr_dao = klustr_dao
+
+        self.dataset_model = QStandardItemModel()
+        self.set_model(self.dataset_model)
+
+    def update_datasets(self, klustr_dao):
+        self.dataset_model.clear()
+        
+        # Ajouter "Tous les datasets"
+        item = KlustR3DDatasetItem(-1, 'Toutes les images')
+        self.dataset_model.append_row(item)
+        
+        # Ajouter les datasets
+        for dataset in klustr_dao.available_datasets:
+            item = KlustR3DDatasetItem(
+                dataset[0],  # id
+                dataset[1],  # name
+                'true' if dataset[2] else 'false',  # translated
+                'true' if dataset[3] else 'false',  # rotated
+                'true' if dataset[4] else 'false',  # scaled
+                f'{dataset[5]}',  # label_count
+                f'{dataset[6]}',  # training_image_count
+                f'{dataset[7]}'   # test_image_count
+            )
+            self.dataset_model.append_row(item)
+    
+    def get_selected_dataset_id(self):
+        """Retourne l'ID du dataset sélectionné"""
+        item = self.dataset_model.item(self.current_index)
+        if isinstance(item, KlustR3DDatasetItem):
+            return item.id
+        return None
+    
+    def get_selected_dataset_item(self):
+        """Retourne l'item complet du dataset sélectionné"""
+        item = self.dataset_model.item(self.current_index)
+        if isinstance(item, KlustR3DDatasetItem):
+            return item
+        return None
 
 
 
 
 
 
+class Ui_klustr3DDataWidget(QWidget):
+    def __init__(self, klustr_dao, parent=None):
+        
+        super().__init__(parent)
 
+    #     self.klustr_dao = klustr_dao
+    #     if self.klustr_dao.is_available:
+    #         self._setup_models()
+    #         #self.setupUi()
 
+    #         #self._update_dataset()
+    #         # self.label_model.update_for_all_images(self.pg_cursor)
+    #         # self.image_label_list_view.set_current_index(self.label_model.index(0, 0))
+    #         # self.image_list_view.set_current_index(self.image_model.index(0, 0))
+    #     #else:
+    #         #self._setup_invalid_gui()
+    # def _setup_models(self):
+    #     self.dataset_model_ui = KlustRDatasetModel()
+    #     self.label_model_ui = KlustRLabelModel()
+    #     self.image_model_ui = KlustRImageModel()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-#from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-#    QMetaObject, QObject, QPoint, QRect,
-#    QSize, QTime, QUrl, Qt)
-#from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-#    QFont, QFontDatabase, QGradient, QIcon,
-#    QImage, QKeySequence, QLinearGradient, QPainter,
-#    QPalette, QPixmap, QRadialGradient, QTransform)
-#from PySide6.QtWidgets import (QApplication, QComboBox, QGroupBox, QLabel,
-#    QPushButton, QScrollBar, QSizePolicy, QWidget)
-
-class Ui_klustrDataWidget(object):
     def setupUi(self, klustrDataWidget):
         klustrDataWidget.resize(390, 628)
         self.grbDataset = QGroupBox(klustrDataWidget)
@@ -658,13 +694,13 @@ class Ui_klustrDataWidget(object):
 
         self.scoll_bar_k = QScrollBar(self.grb_parametre)
         self.scoll_bar_k.geometry = (QRect(120, 40, 221, 21))
-        self.scoll_bar_k.min = (10)
+        self.scoll_bar_k.min = (1)
         self.scoll_bar_k.max = (10)
         self.scoll_bar_k.orientation = (Qt.Orientation.Horizontal)
 
         self.scroll_bar_dist = QScrollBar(self.grb_parametre)
         self.scroll_bar_dist.geometry = (QRect(120, 75, 221, 21))
-        self.scroll_bar_dist.minimum = (0)
+        self.scroll_bar_dist.minimum = (1)
         self.scroll_bar_dist.max = (10)
         self.scroll_bar_dist.orientation = (Qt.Orientation.Horizontal)
 
@@ -683,12 +719,39 @@ class Ui_klustrDataWidget(object):
 
         self.btn_about = QPushButton(klustrDataWidget)
         self.btn_about.geometry = (QRect(20, 580, 351, 24))
+        self.btn_about.clicked.connect(self.about_klustrWidget)
 
         self.retranslateUi(klustrDataWidget)
 
-        QMetaObject.connect_slots_by_name = (klustrDataWidget)
-    # setupUi
+    # @Slot()
+    # def select_dataset(self, selected, deselected):
+    #     if selected:
+    #         index = selected.indexes()[0]
+    #         item = index.model().item_from_index(index)
+    #         if isinstance(item, KlustRDatasetItem):
+    #             if item.id == -1:
+    #                 self.label_model_ui.update_for_all_images(self.klustr_dao)
+    #             else:
+    #                 self.cmb_dataset.set_current_index(self.dataset_model_ui.index(0, 0, index))
+    #         else:
+    #             self.label_model_ui.update_from_dataset(item.parent().name, self.klustr_dao)
+    #         self.cmb_image.set_current_index(self.label_model_ui.index(0, 0))
 
+    
+
+    def about_klustrWidget(self):
+        msgBox = QMessageBox()
+        msgBox.text = ("Ce logiciel est le projet no 1 du cours C52. \r\n Il a été réalisé par :\r\n \u0009 - __étudiant_1__\r\n \u0009- __étudiant_n__ \r\n \r\n "
+        "Il consiste à faire __quelque_chose__ avec les concepts suivants :\r\n \u0009- __concept_1__\r\n \u0009- __concept_n__\r\n \r\n Nos 3 descripteurs de forme sont :\r\n"
+        " - __decripteur_1__\r\n \u0009 - en __unité__ pour le domaine __domaine__\r\n \u0009- correspondant à __courte_description__\r\n - __decripteur_2__\r\n \u0009"
+        " - en __unité__ pour le domaine __domaine__\r\n \u0009- correspondant à __courte_description__\r\n - __decripteur_3__\r\n \u0009- en __unité__ pour le domaine __domaine__"
+        "\r\n \u0009- correspondant à __courte_description__\r\n \r\n Plus précisément, ce laboratoire permet de mettre en pratique les notions de :\r\n"
+        "\u0009 - __notion_1__\r\n \u0009- __notion_n__\r\n \r\n Un effort d'abstraction a été fait pour ces points :\r\n \u0009- __point_1__\r\n \u0009- __point_n__"
+        "\r\n \r\nFinalement, l’ensemble de données le plus complexe que nous avons été capable de résoudre est\r\n :\r\n - __nom_de_l_ensemble_de_données__")
+        msgBox.exec()
+
+        #QMetaObject.connect_slots_by_name = (klustrDataWidget)
+    # fabrication du UI
     def retranslateUi(self, klustrDataWidget):
         klustrDataWidget.set_window_role = "klustrDataWidget"
         self.grbDataset.title = "Dataset"
@@ -718,15 +781,17 @@ class Ui_klustrDataWidget(object):
         self.label_dist_max_value.text ="0.00"
         self.label_k_value.text ="0"
         self.btn_about.text ="A propos"
-    # retranslateUi
+    # traduction par défaut
+
+
 
 
 def main():
     app = QApplication(sys.argv)
 
     #A changer selon votre configuration d'ordinateur
-    credential = PostgreSQLCredential(password='Yoshi9603')
-    #credential = PostgreSQLCredential(password='AAAaaa123')
+    #credential = PostgreSQLCredential(password='Yoshi9603')
+    credential = PostgreSQLCredential(password='AAAaaa123')
     # credential = PostgreSQLCredential(password='123')
 
 

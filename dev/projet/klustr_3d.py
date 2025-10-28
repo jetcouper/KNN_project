@@ -4,7 +4,7 @@ import os
 from types import NoneType
 from enum import Enum, auto
 from random import uniform, randint, choice
-from klustr_main import Ui_klustrDataWidget
+from klustr_main import Ui_klustr3DDataWidget
 import numpy as np
 
 
@@ -805,7 +805,7 @@ class KnnImageClassificationWidget(QWidget):
         self.control_widget = QWidget()
         # Tu devras importer Ui_klustrDataWidget depuis ton fichier principal
         
-        self.ui = Ui_klustrDataWidget()
+        self.ui = Ui_klustr3DDataWidget(klustr_dao)
         self.ui.setupUi(self.control_widget)
         
         # Fixer la largeur du panneau de contrôle
