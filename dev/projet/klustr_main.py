@@ -616,7 +616,7 @@ class Ui_klustr3DDataWidget(QWidget):
         self.grbDataset = QGroupBox(klustrDataWidget)
         self.grbDataset.geometry = (QRect(19, 9, 351, 191))
 
-        self.cmb_dataset =  KlustR3DDatasetComboBox(self.grbDataset)
+        self.cmb_dataset = KlustR3DDatasetComboBox(self.grbDataset)
         self.cmb_dataset.geometry = (QRect(20, 30, 321, 31))
         self.cmb_dataset.update_datasets(self.klustr_dao)
 
@@ -638,6 +638,7 @@ class Ui_klustr3DDataWidget(QWidget):
         self.label_category_count = QLabel(self.grbIncluded)
         self.label_category_count.geometry = (QRect(150, 30, 21, 20))
         self.label_category_count.alignment = (Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        #self.label_category_count.text = str((self.cmb_dataset.get_selected_dataset_item()).column_count)
 
         self.label_training_count = QLabel(self.grbIncluded)
         self.label_training_count.geometry = (QRect(150, 50, 21, 20))
