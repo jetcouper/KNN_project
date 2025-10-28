@@ -543,7 +543,7 @@ class KlustRDataSourceViewWidget(QWidget):
 
 
 
-class KlustR3DDatasetItem(QComboBox):
+class KlustR3DDatasetComboBox(QComboBox):
     def __init__(self, parent = None):
         super().__init__(parent)
 
@@ -554,12 +554,12 @@ class KlustR3DDatasetItem(QComboBox):
         self.dataset_model.clear()
         
         # Ajouter "Tous les datasets"
-        item = KlustR3DDatasetItem(-1, 'Toutes les images')
+        item = KlustRDatasetItem(-1, 'Toutes les images')
         self.dataset_model.append_row(item)
         
         # Ajouter les datasets
         for dataset in klustr_dao.available_datasets:
-            item = KlustR3DDatasetItem(
+            item = KlustRDatasetItem(
                 dataset[0],  # id
                 dataset[1],  # name
                 'true' if dataset[2] else 'false',  # translated
@@ -574,14 +574,14 @@ class KlustR3DDatasetItem(QComboBox):
     def get_selected_dataset_id(self):
         """Retourne l'ID du dataset sélectionné"""
         item = self.dataset_model.item(self.current_index)
-        if isinstance(item, KlustR3DDatasetItem):
+        if isinstance(item, KlustRDatasetItem):
             return item.id
         return None
     
     def get_selected_dataset_item(self):
         """Retourne l'item complet du dataset sélectionné"""
         item = self.dataset_model.item(self.current_index)
-        if isinstance(item, KlustR3DDatasetItem):
+        if isinstance(item, KlustRDatasetItem):
             return item
         return None
 
@@ -595,7 +595,7 @@ class Ui_klustr3DDataWidget(QWidget):
         
         super().__init__(parent)
 
-    #     self.klustr_dao = klustr_dao
+        self.klustr_dao = klustr_dao
     #     if self.klustr_dao.is_available:
     #         self._setup_models()
     #         #self.setupUi()
@@ -616,8 +616,9 @@ class Ui_klustr3DDataWidget(QWidget):
         self.grbDataset = QGroupBox(klustrDataWidget)
         self.grbDataset.geometry = (QRect(19, 9, 351, 191))
 
-        self.cmb_dataset = QComboBox(self.grbDataset)
+        self.cmb_dataset =  KlustR3DDatasetComboBox(self.grbDataset)
         self.cmb_dataset.geometry = (QRect(20, 30, 321, 31))
+        self.cmb_dataset.update_datasets(self.klustr_dao)
 
         self.grbIncluded = QGroupBox(self.grbDataset)
         self.grbIncluded.geometry = (QRect(20, 60, 191, 121))
