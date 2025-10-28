@@ -7,12 +7,12 @@ from __feature__ import snake_case, true_property # type: ignore[import-not-foun
 # -----------------------------------------------------------------------------
 
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt, QSize,QRect,QMetaObject,QCoreApplication
 from PySide6.QtCore import Signal, Slot
 from PySide6.QtWidgets import  (QApplication, QWidget, QListView, QTreeView,  
                                 QGroupBox, QLabel, QCheckBox, QPlainTextEdit,
                                 QGridLayout, QHBoxLayout, QVBoxLayout, QSplitter, QSizePolicy,
-                                QMessageBox,QStackedWidget, QTabWidget)
+                                QMessageBox,QStackedWidget, QTabWidget,QComboBox,QPushButton,QScrollBar)
 from PySide6.QtGui import  (QImage, QPixmap, QIcon, QPainter, QFont, QPen, QBrush, QColor, 
                             QStandardItemModel, QStandardItem,
                             QClipboard)
@@ -538,7 +538,220 @@ class KlustRDataSourceViewWidget(QWidget):
 
 
 
+class KlustrDataSetViewWidget(QWidget):
+    def __init__(self, klustr_dao, parent=None):
+        super().__init__(parent)
+        self.klustr_dao = klustr_dao
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+#    QMetaObject, QObject, QPoint, QRect,
+#    QSize, QTime, QUrl, Qt)
+#from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+#    QFont, QFontDatabase, QGradient, QIcon,
+#    QImage, QKeySequence, QLinearGradient, QPainter,
+#    QPalette, QPixmap, QRadialGradient, QTransform)
+#from PySide6.QtWidgets import (QApplication, QComboBox, QGroupBox, QLabel,
+#    QPushButton, QScrollBar, QSizePolicy, QWidget)
+
+class Ui_klustrDataWidget(object):
+    def setupUi(self, klustrDataWidget):
+        if not klustrDataWidget.object_name:
+            klustrDataWidget.object_name = u"klustrDataWidget"
+        klustrDataWidget.resize(390, 628)
+        self.grbDataset = QGroupBox(klustrDataWidget)
+        #self.grbDataset.object_name = u"grbDataset"
+        self.grbDataset.geometry = (QRect(19, 9, 351, 191))
+
+        self.cmb_dataset = QComboBox(self.grbDataset)
+        #self.cmb_dataset.object_name = u"cmb_dataset"
+        self.cmb_dataset.geometry = (QRect(20, 30, 321, 31))
+
+        self.grbIncluded = QGroupBox(self.grbDataset)
+        #self.grbIncluded.object_name = u"grbIncluded"
+        self.grbIncluded.geometry = (QRect(20, 60, 191, 121))
+
+        self.label_category = QLabel(self.grbIncluded)
+        #self.label_category.object_name = u"label_category"
+        self.label_category.geometry = (QRect(10, 30, 91, 16))
+
+        self.label_training = QLabel(self.grbIncluded)
+        #self.label_training.object_name = u"label_training"
+        self.label_training.geometry = (QRect(10, 50, 121, 16))
+
+        self.label_test = QLabel(self.grbIncluded)
+        #self.label_test.object_name = u"label_test"
+        self.label_test.geometry = (QRect(10, 70, 101, 16))
+
+        self.label_total_image = QLabel(self.grbIncluded)
+        #self.label_total_image.object_name = u"label_total_image"
+        self.label_total_image.geometry = (QRect(10, 90, 111, 16))
+
+        self.label_category_count = QLabel(self.grbIncluded)
+        #self.label_category_count.object_name = u"label_category_count"
+        self.label_category_count.geometry = (QRect(150, 30, 21, 20))
+        self.label_category_count.alignment = (Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+
+        self.label_training_count = QLabel(self.grbIncluded)
+        #self.label_training_count.object_name = u"label_training_count"
+        self.label_training_count.geometry = (QRect(150, 50, 21, 20))
+        self.label_training_count.alignment = (Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+
+        self.label_test_count = QLabel(self.grbIncluded)
+        #self.label_test_count.object_name = u"label_test_count"
+        self.label_test_count.geometry = (QRect(150, 70, 21, 20))
+        self.label_test_count.alignment = (Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+
+        self.label_total_count = QLabel(self.grbIncluded)
+        #self.label_total_count.object_name = u"label_total_count"
+        self.label_total_count.geometry = (QRect(150, 90, 21, 20))
+        self.label_total_count.alignment = (Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+
+        self.grbTransformation = QGroupBox(self.grbDataset)
+        #self.grbTransformation.object_name = u"grbTransformation"
+        self.grbTransformation.geometry = (QRect(220, 60, 121, 121))
+
+        self.label_translated = QLabel(self.grbTransformation)
+        #self.label_translated.object_name = u"label_translated"
+        self.label_translated.geometry = (QRect(10, 30, 71, 16))
+
+        self.label_rotated = QLabel(self.grbTransformation)
+        #self.label_rotated.object_name = u"label_rotated"
+        self.label_rotated.geometry = (QRect(10, 50, 49, 16))
+
+        self.label_scaled = QLabel(self.grbTransformation)
+        #self.label_scaled. object_name = u"label_scaled"
+        self.label_scaled.geometry = (QRect(10, 70, 49, 16))
+
+        self.label_translated_value = QLabel(self.grbTransformation)
+        #self.label_translated_value.object_name = u"label_translated_value"
+        self.label_translated_value.geometry = (QRect(80, 30, 31, 20))
+
+        self.label_rotated_value = QLabel(self.grbTransformation)
+        #self.label_rotated_value.object_name = u"label_rotated_value"
+        self.label_rotated_value.geometry = (QRect(80, 50, 31, 16))
+
+        self.label_scaled_value = QLabel(self.grbTransformation)
+        #self.label_scaled_value.object_name = u"label_scaled_value"
+        self.label_scaled_value.geometry = (QRect(80, 70, 31, 16))
+
+        self.grb_simple_test = QGroupBox(klustrDataWidget)
+        #self.grb_simple_test.object_name = u"grb_simple_test"
+        self.grb_simple_test.geometry = (QRect(20, 200, 351, 271))
+
+        self.cmb_image = QComboBox(self.grb_simple_test)
+        #self.cmb_image.object_name = u"cmb_image"
+        self.cmb_image.geometry = (QRect(20, 30, 311, 24))
+
+        self.view_label_image = QLabel(self.grb_simple_test)
+        #self.view_label_image.object_name = u"view_label_image"
+        self.view_label_image.geometry = (QRect(20, 60, 311, 141))
+        self.view_label_image.style_sheet = (u"background-color : #313D4A; padding : 10px 10px 10px 10px;")
+
+        self.btn_classify = QPushButton(self.grb_simple_test)
+        #self.btn_classify.object_name = u"btn_classify"
+        self.btn_classify.geometry = (QRect(20, 210, 311, 24))
+
+        self.label_classified = QLabel(self.grb_simple_test)
+        #self.label_classified.object_name = u"label_classified"
+        self.label_classified.geometry = (QRect(130, 240, 111, 20))
+        self.label_classified.alignment = (Qt.AlignmentFlag.AlignCenter)
+
+        self.grb_parametre = QGroupBox(klustrDataWidget)
+        #self.grb_parametre.object_name = u"grb_parametre"
+        self.grb_parametre.geometry = (QRect(20, 470, 351, 101))
+
+
+        self.scoll_bar_k = QScrollBar(self.grb_parametre)
+        #self.scoll_bar_k.object_name = u"scoll_bar_k"
+        self.scoll_bar_k.geometry = (QRect(120, 40, 221, 21))
+        self.scoll_bar_k.min = (10)
+        self.scoll_bar_k.max = (10)
+        self.scoll_bar_k.orientation = (Qt.Orientation.Horizontal)
+
+        self.scroll_bar_dist = QScrollBar(self.grb_parametre)
+        #self.scroll_bar_dist.object_name = u"scroll_bar_dist"
+        self.scroll_bar_dist.geometry = (QRect(120, 75, 221, 21))
+        self.scroll_bar_dist.minimum = (0)
+        self.scroll_bar_dist.max = (10)
+        self.scroll_bar_dist.orientation = (Qt.Orientation.Horizontal)
+
+        self.label_k = QLabel(self.grb_parametre)
+        #self.label_k.object_name = u"label_k"
+        self.label_k.geometry = (QRect(10, 40, 49, 21))
+        self.label_k.alignment = (Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+
+        self.label_dist_max = QLabel(self.grb_parametre)
+        #self.label_dist_max.object_name = u"label_dist_max"
+        self.label_dist_max.geometry = (QRect(10, 80, 61, 16))
+
+        self.label_dist_max_value = QLabel(self.grb_parametre)
+        #self.label_dist_max_value.object_name = u"label_dist_max_value"
+        self.label_dist_max_value.geometry = (QRect(70, 80, 31, 20))
+
+        self.label_k_value = QLabel(self.grb_parametre)
+        #self.label_k_value.object_name = u"label_k_value"
+        self.label_k_value.geometry = (QRect(70, 41, 31, 20))
+
+        self.btn_about = QPushButton(klustrDataWidget)
+        #self.btn_about.object_name = u"btn_about"
+        self.btn_about.geometry = (QRect(20, 580, 351, 24))
+
+        self.retranslateUi(klustrDataWidget)
+
+        QMetaObject.connect_slots_by_name = (klustrDataWidget)
+    # setupUi
+
+    def retranslateUi(self, klustrDataWidget):
+        klustrDataWidget.set_window_role = "klustrDataWidget"
+        self.grbDataset.title = "Dataset"
+        self.grbIncluded.title = "Inclut dans Dataset"
+        self.label_category.text = "Category count:"
+        self.label_training.text = "Training image count:"
+        self.label_test.text = "Test image count:"
+        self.label_total_image.text ="Total image count:"
+        self.label_category_count.text ="0"
+        self.label_training_count.text ="0"
+        self.label_test_count.text ="0"
+        self.label_total_count.text ="0"
+        self.grbTransformation.title = "Transformation"
+        self.label_translated.text ="Translated:"
+        self.label_rotated.text ="Rotated:"
+        self.label_scaled.text ="Scaled:"
+        self.label_translated_value.text ="false"
+        self.label_rotated_value.text ="false"
+        self.label_scaled_value.text ="false"
+        self.grb_simple_test.title = "Teste simple"
+        self.view_label_image.text =("")
+        self.btn_classify.text ="Classifier"
+        self.label_classified.text ="non-classifié"
+        self.grb_parametre.title = "Paramètres Knn"
+        self.label_k.text ="K ="
+        self.label_dist_max.text ="Max dist ="
+        self.label_dist_max_value.text ="0.00"
+        self.label_k_value.text ="0"
+        self.btn_about.text ="About"
+    # retranslateUi
 
 
 def main():

@@ -4,7 +4,7 @@ import os
 from types import NoneType
 from enum import Enum, auto
 from random import uniform, randint, choice
-
+from klustr_main import Ui_klustrDataWidget
 import numpy as np
 
 
@@ -781,7 +781,7 @@ class QScatter3dViewer(QWidget):
             self.__scatter.remove_series(serie)
         QScatter3dViewer.__clear_series()
         self.__update_legend()
-    
+ 
 
 
 
@@ -801,10 +801,21 @@ class KnnImageClassificationWidget(QWidget):
         self.viewer_3d.axis_y.title = "Axis 2"
         self.viewer_3d.axis_z.title = "Axis 3"
         
-        # Layout principal - JUSTE le viewer 3D, rien d'autre
-        layout = QVBoxLayout(self)
+        # Créer le widget de contrôle (l'interface UI)
+        self.control_widget = QWidget()
+        # Tu devras importer Ui_klustrDataWidget depuis ton fichier principal
+        
+        self.ui = Ui_klustrDataWidget()
+        self.ui.setupUi(self.control_widget)
+        
+        # Fixer la largeur du panneau de contrôle
+        self.control_widget.set_fixed_width(390)
+        
+        # Layout horizontal : contrôles à gauche, viewer 3D à droite
+        layout = QHBoxLayout(self)
+        layout.add_widget(self.control_widget)
         layout.add_widget(self.viewer_3d)
-        layout.contents_margins = QMargins(0, 0, 0, 0)
+        layout.contents_margins = (QMargins(0, 0, 0, 0))
     
     def add_classification_data(self, data3d, color, title=''):
         """Ajoute des données de classification au viewer 3D"""
