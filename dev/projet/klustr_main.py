@@ -750,7 +750,7 @@ class Ui_klustrDataWidget(object):
         self.label_dist_max.text ="Max dist ="
         self.label_dist_max_value.text ="0.00"
         self.label_k_value.text ="0"
-        self.btn_about.text ="About"
+        self.btn_about.text ="A propos"
     # retranslateUi
 
 
