@@ -7,7 +7,7 @@ from __feature__ import snake_case, true_property # type: ignore[import-not-foun
 # -----------------------------------------------------------------------------
 
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtCore import Qt, QSize,QRect,QMetaObject,QCoreApplication
+from PySide6.QtCore import Qt, QSize,QRect,QMetaObject,QCoreApplication,QMargins
 from PySide6.QtCore import Signal, Slot
 from PySide6.QtWidgets import  (QApplication, QWidget, QListView, QTreeView,  
                                 QGroupBox, QLabel, QCheckBox, QPlainTextEdit,
@@ -16,6 +16,8 @@ from PySide6.QtWidgets import  (QApplication, QWidget, QListView, QTreeView,
 from PySide6.QtGui import  (QImage, QPixmap, QIcon, QPainter, QFont, QPen, QBrush, QColor, 
                             QStandardItemModel, QStandardItem,
                             QClipboard)
+from color_sequence import QColorSequence
+
 
 # -----------------------------------------------------------------------------
 from shibokensupport import feature # type: ignore[import-not-found]
@@ -36,32 +38,7 @@ from klustr_utils import QtNpConvert
 #    \__\_\\__|   |_|\__\___|_| |_| |_|___/ /_/    |_| |_| |_|\___/ \__,_|\___|_|___/
 #                                                                                    
 
-class KlustRDatasetItem(QStandardItem):
-    def __init__(self, id, name, translated='', rotated='', scaled='', label_count='', training_image_count='', test_image_count=''):
-        super().__init__(name)
 
-        self._id = id
-        self._name = name
-
-        if id == -1:
-            pass
-        else:
-            for name, count in [['Training', training_image_count], ['Test', test_image_count]]:
-                self.append_row([   
-                        QStandardItem(name), 
-                        QStandardItem(translated), 
-                        QStandardItem(rotated), 
-                        QStandardItem(scaled), 
-                        QStandardItem(label_count), 
-                        QStandardItem(count)])
-
-    @property
-    def id(self):
-        return self._id
-
-    @property
-    def name(self):
-        return self._name
 
 
 class KlustRDatasetModel(QStandardItemModel):
@@ -546,28 +523,41 @@ class KlustRDataSourceViewWidget(QWidget):
 
 
 
+#---------------------------------------------------
+#FENÊTRE KNN
+#---------------------------------------------------
 
 
 
 
 
 
+class KlustRDatasetItem(QStandardItem):
+    def __init__(self, id, name, translated='', rotated='', scaled='', label_count='', training_image_count='', test_image_count=''):
+        super().__init__(name)
 
+        self._id = id
+        self._name = name
 
+        if id == -1:
+            pass
+        else:
+            for name, count in [['Training', training_image_count], ['Test', test_image_count]]:
+                self.append_row([   
+                        QStandardItem(name), 
+                        QStandardItem(translated), 
+                        QStandardItem(rotated), 
+                        QStandardItem(scaled), 
+                        QStandardItem(label_count), 
+                        QStandardItem(count)])
 
+    @property
+    def id(self):
+        return self._id
 
-
-
-
-
-
-
-
-
-
-
-
-
+    @property
+    def name(self):
+        return self._name
 
 
 
@@ -619,11 +609,10 @@ class KlustR3DDatasetComboBox(QComboBox):
 
 
 
-class Ui_klustr3DDataWidget(QWidget):
+class UiKlustr3DDataWidget(QWidget):
     def __init__(self, klustr_dao, parent=None):
         
         super().__init__(parent)
-
         self.klustr_dao = klustr_dao
 
 
@@ -633,6 +622,7 @@ class Ui_klustr3DDataWidget(QWidget):
     @Slot()
     def setupUi(self, klustrDataWidget):
         klustrDataWidget.resize(390, 628)
+        
         self.grbDataset = QGroupBox(klustrDataWidget)
         self.grbDataset.geometry = (QRect(19, 9, 351, 191))
 
@@ -742,6 +732,7 @@ class Ui_klustr3DDataWidget(QWidget):
         self.label_k = QLabel(self.grb_parametre)
         self.label_k.geometry = (QRect(10, 40, 49, 21))
         self.label_k.alignment = (Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        
 
         self.label_dist_max = QLabel(self.grb_parametre)
         self.label_dist_max.geometry = (QRect(10, 80, 61, 16))
@@ -949,8 +940,6 @@ class Ui_klustr3DDataWidget(QWidget):
         "\u0009 - __notion_1__\r\n \u0009- __notion_n__\r\n \r\n Un effort d'abstraction a été fait pour ces points :\r\n \u0009- __point_1__\r\n \u0009- __point_n__"
         "\r\n \r\nFinalement, l’ensemble de données le plus complexe que nous avons été capable de résoudre est\r\n :\r\n - __nom_de_l_ensemble_de_données__")
         msgBox.exec()
-
-        #QMetaObject.connect_slots_by_name = (klustrDataWidget)
     # fabrication du UI
     @Slot()
     def retranslateUi(self, klustrDataWidget):
@@ -982,7 +971,6 @@ class Ui_klustr3DDataWidget(QWidget):
         self.label_dist_max_value.text ="0.00"
         self.label_k_value.text ="0"
         self.btn_about.text ="A propos"
-    # traduction par défaut
 
     @Slot()
     def update_k_value(self):
@@ -1068,75 +1056,59 @@ class Ui_klustr3DDataWidget(QWidget):
         
         # Pour tester, afficher des infos
         self.label_classified.text = f"Shape: {image_array.shape}"
+
+        # Ajouter vos séries de points via le KNN effectué
+        #return KNN
+        return np.array() #KNN
         
-        # Exemple avec votre KNN :
-        # self.label_classified.text = predicted_label
     
     
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+class KnnImageClassificationWidget(QWidget):
+    """Widget pour la classification KNN avec visualisation 3D"""
     
-    
-    
-    # EXEMPLE DE STRUCTURE COMPLÈTE POUR KNN
-    
-    
-    # class KNNImageClassifier:
-    #     """Exemple de structure pour votre classificateur KNN"""
+    def __init__(self, klustr_dao, parent=None):
+        super().__init__(parent)
         
-    #     def __init__(self, training_images, training_labels):
-    #         """
-    #         Args:
-    #             training_images: numpy array shape (n_samples, 22500)
-    #             training_labels: numpy array shape (n_samples,)
-    #         """
-    #         self.training_images = training_images
-    #         self.training_labels = training_labels
+        self.klustr_dao = klustr_dao
         
-    #     def classify(self, test_image, k=3, dist_max=1.0):
-    #         """
-    #         Classifie une image de test
-            
-    #         Args:
-    #             test_image: numpy array shape (22500,)
-    #             k: nombre de voisins
-    #             dist_max: distance maximale acceptable
-            
-    #         Returns:
-    #             label prédit (str)
-    #         """
-    #         # Calculer les distances euclidiennes
-    #         distances = np.linalg.norm(self.training_images - test_image, axis=1)
-            
-    #         # Trouver les k plus proches voisins
-    #         k_nearest_indices = np.argsort(distances)[:k]
-    #         k_nearest_distances = distances[k_nearest_indices]
-            
-    #         # Filtrer par distance max
-    #         valid_indices = k_nearest_indices[k_nearest_distances <= dist_max]
-            
-    #         if len(valid_indices) == 0:
-    #             return "Inconnu"
-            
-    #         # Vote majoritaire
-    #         k_nearest_labels = self.training_labels[valid_indices]
-    #         unique, counts = np.unique(k_nearest_labels, return_counts=True)
-    #         predicted_label = unique[np.argmax(counts)]
-            
-    #         return predicted_label
+        # Créer le viewer 3D avec rotation automatique
+        self.viewer_3d = Animation.QScatter3dViewer(auto_rotate=True)
+        self.viewer_3d.title = "KNN Classification 3D"
+        self.viewer_3d.axis_x.title = "Axis 1"
+        self.viewer_3d.axis_y.title = "Axis 2"
+        self.viewer_3d.axis_z.title = "Axis 3"
+        
+        # Créer le widget de contrôle (l'interface UI)
+        self.control_widget = QWidget()
+        # J'importe UiklustrDataWidget depuis ton fichier principal
+        
+        self.ui = UiKlustr3DDataWidget(klustr_dao)
+        self.ui.setupUi(self.control_widget)
+        #self.viewer_3d.add_serie
+        
+        
+        
+        # Fixer la largeur du panneau de contrôle
+        self.control_widget.set_fixed_width(390)
+        
+        # Layout horizontal : contrôles à gauche, viewer 3D à droite
+        layout = QHBoxLayout(self)
+        layout.add_widget(self.control_widget)
+        layout.add_widget(self.viewer_3d)
+        layout.contents_margins = (QMargins(0, 0, 0, 0))
+
+        self.ui.btn_classify.clicked.connect(self.methode)
+    
+    @Slot()
+    def methode(self):
+        self.valeurKNN = np.array()
+        self.add_classification_data(self.valeurKNN,QColorSequence.next(),"")
+
+    
+    def add_classification_data(self, data3d, color, title=''):
+        """Ajoute des données de classification au viewer 3D"""
+        self.viewer_3d.add_serie(data3d, color, title)
 
 
 
@@ -1159,7 +1131,7 @@ def main():
     source_data_widget = KlustRDataSourceViewWidget(klustr_dao)
     
     # Deuxième vue : KNN Classification 3D
-    knn_widget = Animation.KnnImageClassificationWidget(klustr_dao)
+    knn_widget = KnnImageClassificationWidget(klustr_dao)
     
     # Ajouter les onglets
     tab_widget.add_tab(source_data_widget, "KlustR Source Viewer")
