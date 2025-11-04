@@ -15,34 +15,59 @@ class KNN:
 
     def get_perimeter(image):
         
-            perimeter = 0
-            liste_contour = []
-            liste = np.array(image)
-            dimx = liste.shape[0]
-            dimy = liste.shape[1]
-
-            #toutes les directions à vérifier 
-            directions = np.array([(-1, -1), (0, -1), (1, -1), #8 voisins à vérifier 
-                                    (-1, 0),           (0, 1),
-                                    (-1, 1),   (1,1),  (1, 1),
-                                ])
+        image = np.array(image)
+        dimy, dimx = image.shape #pour obtenir la taille pour chacune des dimensions selon les axes y et x
+        perimeter = 0
+        # liste = np.array(image)
+        # dimx = liste.shape[0]
+        # dimy = liste.shape[1]
+        masque = np.zeros((dimy, dimx), dtype=int) #crée une matrice temporaire de même taille que l'image remplie de 0 
+        
+        # ici on retire chaque dernier point des extrémités => (i - 1), (i + 1)
+        for i in range(1, dimy - 1):
+            for j in range(1, dimx - 1):
             
-            coordx = directions[0]
-            coordy = directions[1]
-
-            for x in np.arange(dimx):
-                for y in np.arange(dimy):
-                        if liste[x,y] == 1:
-                            for x in coordx:
-                                for y in coordy:
-                                    if(np.any(liste[x + coordx, y + coordy]) == 0): #inclut 0 et extérieur
-                                        pt = (x + coordx, y + coordy)
-                                        if pt in liste_contour:
-                                         liste_contour.append(pt)
+                 #toutes les voisins à vérifier sauf les extrémités 
+                all_voisins = [image[i - 1, j - 1], image[i - 1, j], image [i - 1, j + 1], #8 voisins à vérifier 
+                                image[i, j - 1],                      image[i, j + 1],
+                                image [i + 1, j - 1], image[i + 1, j], image[i + 1, j + 1]  
+                            ]
+                
+                if image[i, j] == 1: #pour chaque pixel
+                    
+                    if image[i - 1, j] == 0: #si le pixel en haut est vide, alors est en bordure (perimetre)
+                        perimeter += 1
+                    
+                    if image[i, j + 1] == 0: #droite
+                        perimeter += 1
+                        
+                    if image[i + 1, j] == 0: #bas 
+                        perimeter += 1 
+                        
+                    if image[i, j -1] == 0: #gauche
+                        perimeter += 1
+                        
+                        
+                # verif_nbvoisins = sum(all_voisins)
             
-            perimeter = len(liste_contour) # * ((1**2) + (1**2))**0.5 # on fait la distance euclidienne
+                # if (verif_nbvoisins <= 7 and image[i, j] == 1): #si on a moins 1 voisin et qu'on est un pixel de l'image
+                #  masque[i, j] = 1 #on indique dans la matrice masque l'emplacement où se trouve les extrémités contours
 
-            return perimeter 
+        # for x in np.arange(dimx):
+        #     for y in np.arange(dimy):
+        #             if liste[x,y] == 1:
+        #                 for x in coordx:
+        #                     for y in coordy:
+        #                         if(np.any(liste[x + coordx, y + coordy]) == 0): #inclut 0 et extérieur
+        #                             pt = (x + coordx, y + coordy)
+        #                             if pt in liste_contour:
+        #                                 liste_contour.append(pt)
+        
+        # perimeter = len(liste_contour) # * ((1**2) + (1**2))**0.5 # on fait la distance euclidienne
+        
+        #perimeter = np.sum(masque) #on retient tout ce qui équivaut à 1, donc le contour de l'image
+        
+        return perimeter
 
     def get_area(image, pt):
         
@@ -97,13 +122,13 @@ class KNN:
                     [0,0,0,0,0,0,0,0],
                     [0,0,0,0,0,0,0,0]]
 
-    print(get_area(image_test, 1))
-    print(get_area(image_test, 0))
-    print(get_perimeter(image_test))
+    print(f'aire grand cercle : {get_area(image_test, 1)}')
+    print(f' aire externe du cercle : {get_area(image_test, 0)}')
+    print(f' perimetre grand cercle : {get_perimeter(image_test)}')
 
 
-    print(get_area(image_test2, 1))
-    print(get_area(image_test2, 0))
-    print(get_perimeter(image_test2))
+    print(f'aire du petit carré {get_area(image_test2, 1)}')
+    print(f'aire externe carré: {get_area(image_test2, 0)}')
+    print(f'perimetre carré {get_perimeter(image_test2)}')
 
     
