@@ -751,7 +751,7 @@ def main():
     tab_widget.show()
     #source_data_widget.show()
 
-    knn_widget.ui.cmb_dataset.add_items([ds[1] for ds in klustr_dao.available_datasets])
+    knn_widget.ui.cmb_dataset.add_items([f"{ds[1]} [{ds[5]}][{ds[8]}]" for ds in klustr_dao.available_datasets])
 
     sys.exit(app.exec())
 
