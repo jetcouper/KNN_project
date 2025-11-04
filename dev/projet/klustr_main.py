@@ -671,7 +671,7 @@ class Ui_klustr3DDataWidget(QWidget):
         self.label_test_count.alignment = (Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
 
         self.label_total_count = QLabel(self.grbIncluded)
-        self.label_total_count.geometry = (QRect(150, 90, 30, 20))
+        self.label_total_count.geometry = (QRect(150, 90, 35, 20))
         self.label_total_count.alignment = (Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
 
         self.grbTransformation = QGroupBox(self.grbDataset)
@@ -725,8 +725,8 @@ class Ui_klustr3DDataWidget(QWidget):
 
         self.scoll_bar_k = QScrollBar(self.grb_parametre)
         self.scoll_bar_k.geometry = (QRect(120, 40, 221, 21))
-        self.scoll_bar_k.min = (1)
-        self.scoll_bar_k.max = (10)
+        self.scoll_bar_k.minimum = (1)
+        self.scoll_bar_k.maximum = (10)
         self.scoll_bar_k.value = 3
         self.scoll_bar_k.orientation = (Qt.Orientation.Horizontal)
         self.scoll_bar_k.valueChanged.connect(self.update_k_value)
@@ -734,7 +734,7 @@ class Ui_klustr3DDataWidget(QWidget):
         self.scroll_bar_dist = QScrollBar(self.grb_parametre)
         self.scroll_bar_dist.geometry = (QRect(120, 75, 221, 21))
         self.scroll_bar_dist.minimum = (1)
-        self.scroll_bar_dist.max = (10)
+        self.scroll_bar_dist.maximum = (10)
         self.scroll_bar_dist.value = 5
         self.scroll_bar_dist.orientation = (Qt.Orientation.Horizontal)
         self.scroll_bar_dist.valueChanged.connect(self.update_dist_max_value)
@@ -914,23 +914,18 @@ class Ui_klustr3DDataWidget(QWidget):
         img = QtNpConvert.qimage_from_png(image_info[6])
         
         if not img.is_null():
-            # Créer le pixmap depuis l'image
             pixmap = QPixmap.from_image(img)
             
-            # Obtenir la taille du QLabel (en tenant compte du padding)
             label_size = self.view_label_image.size
             
-            # Redimensionner pour s'adapter au label tout en gardant le ratio
             scaled_pixmap = pixmap.scaled(
                 label_size,
                 Qt.KeepAspectRatio,
                 Qt.SmoothTransformation
             )
             
-            # Assigner le pixmap au label (sera centré grâce à l'alignement)
             self.view_label_image.pixmap = scaled_pixmap
             
-            # S'assurer que le texte est vide (pas de message par défaut)
             self.view_label_image.text = ""
             
         else:
@@ -991,28 +986,25 @@ class Ui_klustr3DDataWidget(QWidget):
 
     @Slot()
     def update_k_value(self):
-        """Met à jour l'affichage de la valeur K en temps réel"""
         k_value = self.scoll_bar_k.value
-        self.label_k_value.text = str(k_value/ 10.0)
+        self.label_k_value.text = str(k_value)
 
     @Slot()
     def update_dist_max_value(self):
-        """Met à jour l'affichage de la distance max en temps réel"""
-        # Convertir la valeur entière (1-10) en décimal (0.1-1.0)
         dist_value = self.scroll_bar_dist.value / 10.0
         self.label_dist_max_value.text = f"{dist_value:.2f}"
 
 
     def get_k_value(self):
-        """Retourne la valeur actuelle de K"""
+        #Retourne la valeur actuelle de K
         return self.scoll_bar_k.value
     
     def get_dist_max_value(self):
-        """Retourne la valeur actuelle de la distance max"""
+        #Retourne la valeur actuelle de la distance max
         return self.scroll_bar_dist.value / 10.0
     
     def get_current_image_info(self):
-        """Retourne les informations de l'image actuellement sélectionnée"""
+        #Retourne les informations de l'image actuellement sélectionnée
 
         if not hasattr(self, 'cmb_image') or not hasattr(self, 'image_combobox_model'):
             return None
@@ -1030,101 +1022,25 @@ class Ui_klustr3DDataWidget(QWidget):
         return item.data(Qt.UserRole)
     
     def get_current_image_as_array(self):
-        """Retourne l'image actuelle sous forme de numpy array (150, 150)"""
+        #Retourne l'image actuelle sous forme de numpy array (150, 150)
 
         image_info = self.get_current_image_info()
-
+        
         if image_info is None:
             return None
-
+        
+        
         qimage = QtNpConvert.qimage_from_png(image_info[6])
-
+        print(image_info[6])
         if qimage.is_null():
             return None
         
+        
         image_array = QtNpConvert.np_from_qimage(qimage)
-
+        
         return image_array
 
-    def qimage_to_numpy(qimage):
-        """Convertit une QImage en numpy array"""
-
-        width = qimage.width()
-        height = qimage.height()
-
-        # Convertir en format RGB32 si nécessaire
-        if qimage.format() != QImage.Format_RGB32:
-            qimage = qimage.converted_to(QImage.Format_RGB32)
-
-        # Obtenir les données brutes
-        ptr = qimage.bits()
-
-        # Créer le numpy array
-        # Format RGB32 : 4 bytes par pixel (R, G, B, A)
-        arr = np.array(ptr).reshape(height, width, 4)
-
-        # Garder seulement RGB (sans alpha)
-        arr = arr[:, :, :3]
-
-        return arr
-
-    def get_current_image_flattened(self):
-        """
-        Retourne l'image aplatie pour KNN
-        Shape: (22500,) avec valeurs 0 ou 1
-        """
-
-        image_array = self.get_current_image_as_array()
-
-        if image_array is None:
-            return None
-
-        # Aplatir : (150, 150) -> (22500,)
-        return image_array.flatten()
-
-
-    def get_current_image_grayscale_flattened(self):
-        """
-        Retourne l'image en niveaux de gris aplatie (22500,)
-        Réduit la dimension de 67500 (150x150x3) à 22500 (150x150x1)
-
-        Returns:
-            numpy array de shape (22500,) en niveaux de gris
-        """
-
-        image_array = self.get_current_image_as_array()
-
-        if image_array is None:
-            return None
-
-        # Convertir RGB en niveaux de gris
-        # Formule standard : 0.299*R + 0.587*G + 0.114*B
-        grayscale = np.dot(image_array[..., :3], [0.299, 0.587, 0.114])
-
-        # Aplatir : (150, 150) -> (22500,)
-        flattened = grayscale.flatten()
-
-        return flattened
-
-
-    def get_current_image_normalized(self):
-        """
-        Retourne l'image normalisée entre 0 et 1 (au lieu de 0-255)
-        Améliore souvent les performances du KNN
-
-        Returns:
-            numpy array de shape (22500,) normalisé entre 0 et 1
-        """
-
-        image_array = self.get_current_image_grayscale_flattened()
-
-        if image_array is None:
-            return None
-
-        # Normaliser entre 0 et 1
-        normalized = image_array / 255.0
-
-        return normalized
+    
 
 
 
@@ -1132,16 +1048,10 @@ class Ui_klustr3DDataWidget(QWidget):
     @Slot()
     def classify_current_image(self):
         """Classifie l'image actuelle avec KNN"""
-        
-        # Option 1 : Image RGB aplatie (67500 features)
-        # image_array = self.get_current_image_flattened()
-        
-        # Option 2 : Image en niveaux de gris (22500 features) - RECOMMANDÉ
-        image_array = self.get_current_image_grayscale_flattened()
-        
-        # Option 3 : Image normalisée (22500 features, valeurs 0-1) - MEILLEUR
-        # image_array = self.get_current_image_normalized()
-        
+        #image_array = self.get_current_image_as_array_simple()
+
+        image_array= self.get_current_image_as_array()
+
         if image_array is None:
             self.label_classified.text = "Aucune image"
             return
@@ -1153,7 +1063,7 @@ class Ui_klustr3DDataWidget(QWidget):
         print(f"Image shape: {image_array.shape}")
         print(f"Classification avec K={k} et distance_max={dist_max}")
         
-        # TODO: Appeler votre algorithme KNN
+        # Appeler votre algorithme KNN
         # predicted_label = your_knn_classifier.classify(image_array, k=k, dist_max=dist_max)
         
         # Pour tester, afficher des infos
@@ -1163,83 +1073,70 @@ class Ui_klustr3DDataWidget(QWidget):
         # self.label_classified.text = predicted_label
     
     
-    # ============================================================================
-    # ALTERNATIVE : Si QtNpConvert a déjà une méthode de conversion
-    # ============================================================================
-    
-    # Vérifiez si votre classe QtNpConvert possède déjà des méthodes comme :
-    # - QtNpConvert.np_array_from_qimage(qimage)
-    # - QtNpConvert.qimage_to_numpy(qimage)
-    
-    # Si oui, utilisez directement :
-    
-    def get_current_image_as_array_simple(self):
-        """Version simplifiée si QtNpConvert a la conversion"""
-        
-        image_info = self.get_current_image_info()
-        
-        if image_info is None:
-            return None
-        
-        # image_info[6] contient l'image en PNG
-        qimage = QtNpConvert.qimage_from_png(image_info[6])
-        
-        if qimage.is_null():
-            return None
-        
-        # Si QtNpConvert a une méthode de conversion (à vérifier)
-        image_array = QtNpConvert.np_array_from_qimage(qimage)
-        
-        return image_array
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
     
-    # ============================================================================
+    
     # EXEMPLE DE STRUCTURE COMPLÈTE POUR KNN
-    # ============================================================================
     
-    class KNNImageClassifier:
-        """Exemple de structure pour votre classificateur KNN"""
+    
+    # class KNNImageClassifier:
+    #     """Exemple de structure pour votre classificateur KNN"""
         
-        def __init__(self, training_images, training_labels):
-            """
-            Args:
-                training_images: numpy array shape (n_samples, 22500)
-                training_labels: numpy array shape (n_samples,)
-            """
-            self.training_images = training_images
-            self.training_labels = training_labels
+    #     def __init__(self, training_images, training_labels):
+    #         """
+    #         Args:
+    #             training_images: numpy array shape (n_samples, 22500)
+    #             training_labels: numpy array shape (n_samples,)
+    #         """
+    #         self.training_images = training_images
+    #         self.training_labels = training_labels
         
-        def classify(self, test_image, k=3, dist_max=1.0):
-            """
-            Classifie une image de test
+    #     def classify(self, test_image, k=3, dist_max=1.0):
+    #         """
+    #         Classifie une image de test
             
-            Args:
-                test_image: numpy array shape (22500,)
-                k: nombre de voisins
-                dist_max: distance maximale acceptable
+    #         Args:
+    #             test_image: numpy array shape (22500,)
+    #             k: nombre de voisins
+    #             dist_max: distance maximale acceptable
             
-            Returns:
-                label prédit (str)
-            """
-            # Calculer les distances euclidiennes
-            distances = np.linalg.norm(self.training_images - test_image, axis=1)
+    #         Returns:
+    #             label prédit (str)
+    #         """
+    #         # Calculer les distances euclidiennes
+    #         distances = np.linalg.norm(self.training_images - test_image, axis=1)
             
-            # Trouver les k plus proches voisins
-            k_nearest_indices = np.argsort(distances)[:k]
-            k_nearest_distances = distances[k_nearest_indices]
+    #         # Trouver les k plus proches voisins
+    #         k_nearest_indices = np.argsort(distances)[:k]
+    #         k_nearest_distances = distances[k_nearest_indices]
             
-            # Filtrer par distance max
-            valid_indices = k_nearest_indices[k_nearest_distances <= dist_max]
+    #         # Filtrer par distance max
+    #         valid_indices = k_nearest_indices[k_nearest_distances <= dist_max]
             
-            if len(valid_indices) == 0:
-                return "Inconnu"
+    #         if len(valid_indices) == 0:
+    #             return "Inconnu"
             
-            # Vote majoritaire
-            k_nearest_labels = self.training_labels[valid_indices]
-            unique, counts = np.unique(k_nearest_labels, return_counts=True)
-            predicted_label = unique[np.argmax(counts)]
+    #         # Vote majoritaire
+    #         k_nearest_labels = self.training_labels[valid_indices]
+    #         unique, counts = np.unique(k_nearest_labels, return_counts=True)
+    #         predicted_label = unique[np.argmax(counts)]
             
-            return predicted_label
+    #         return predicted_label
 
 
 
@@ -1247,8 +1144,8 @@ def main():
     app = QApplication(sys.argv)
 
     #A changer selon votre configuration d'ordinateur
-    credential = PostgreSQLCredential(password='Yoshi9603')
-    #credential = PostgreSQLCredential(password='AAAaaa123')
+    #credential = PostgreSQLCredential(password='Yoshi9603')
+    credential = PostgreSQLCredential(password='AAAaaa123')
     # credential = PostgreSQLCredential(password='123')
 
 
