@@ -725,7 +725,7 @@ def main():
     app = QApplication(sys.argv)
 
     #A changer selon votre configuration d'ordinateur
-    credential = PostgreSQLCredential(password='Yoshi9603')
+    credential = PostgreSQLCredential(password='sBbXYmsXX7BuZ1')
     #credential = PostgreSQLCredential(password='AAAaaa123')
     # credential = PostgreSQLCredential(password='123')
 
@@ -750,6 +750,8 @@ def main():
     tab_widget.resize(1200, 800)
     tab_widget.show()
     #source_data_widget.show()
+
+    knn_widget.ui.cmb_dataset.add_items([ds[1] for ds in klustr_dao.available_datasets])
 
     sys.exit(app.exec())
 
