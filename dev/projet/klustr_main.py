@@ -1046,6 +1046,27 @@ class Ui_klustr3DDataWidget(QWidget):
 
         return image_array
 
+    def qimage_to_numpy(qimage):
+        """Convertit une QImage en numpy array"""
+
+        width = qimage.width()
+        height = qimage.height()
+
+        # Convertir en format RGB32 si nécessaire
+        if qimage.format() != QImage.Format_RGB32:
+            qimage = qimage.converted_to(QImage.Format_RGB32)
+
+        # Obtenir les données brutes
+        ptr = qimage.bits()
+
+        # Créer le numpy array
+        # Format RGB32 : 4 bytes par pixel (R, G, B, A)
+        arr = np.array(ptr).reshape(height, width, 4)
+
+        # Garder seulement RGB (sans alpha)
+        arr = arr[:, :, :3]
+
+        return arr
 
     def get_current_image_flattened(self):
         """
@@ -1062,28 +1083,163 @@ class Ui_klustr3DDataWidget(QWidget):
         return image_array.flatten()
 
 
+    def get_current_image_grayscale_flattened(self):
+        """
+        Retourne l'image en niveaux de gris aplatie (22500,)
+        Réduit la dimension de 67500 (150x150x3) à 22500 (150x150x1)
+
+        Returns:
+            numpy array de shape (22500,) en niveaux de gris
+        """
+
+        image_array = self.get_current_image_as_array()
+
+        if image_array is None:
+            return None
+
+        # Convertir RGB en niveaux de gris
+        # Formule standard : 0.299*R + 0.587*G + 0.114*B
+        grayscale = np.dot(image_array[..., :3], [0.299, 0.587, 0.114])
+
+        # Aplatir : (150, 150) -> (22500,)
+        flattened = grayscale.flatten()
+
+        return flattened
+
+
+    def get_current_image_normalized(self):
+        """
+        Retourne l'image normalisée entre 0 et 1 (au lieu de 0-255)
+        Améliore souvent les performances du KNN
+
+        Returns:
+            numpy array de shape (22500,) normalisé entre 0 et 1
+        """
+
+        image_array = self.get_current_image_grayscale_flattened()
+
+        if image_array is None:
+            return None
+
+        # Normaliser entre 0 et 1
+        normalized = image_array / 255.0
+
+        return normalized
+
+
 
 
     @Slot()
     def classify_current_image(self):
-        image_array = self.get_current_image_flattened()
-    
+        """Classifie l'image actuelle avec KNN"""
+        
+        # Option 1 : Image RGB aplatie (67500 features)
+        # image_array = self.get_current_image_flattened()
+        
+        # Option 2 : Image en niveaux de gris (22500 features) - RECOMMANDÉ
+        image_array = self.get_current_image_grayscale_flattened()
+        
+        # Option 3 : Image normalisée (22500 features, valeurs 0-1) - MEILLEUR
+        # image_array = self.get_current_image_normalized()
+        
         if image_array is None:
             self.label_classified.text = "Aucune image"
             return
-
+        
+        # Récupérer les paramètres
         k = self.get_k_value()
         dist_max = self.get_dist_max_value()
-
-        #print(f"Image shape: {image_array.shape}")  # (22500,)
-        #print(f"Image values: {np.unique(image_array)}")  # [0 1]
-        #print(f"Classification avec K={k}, dist_max={dist_max}")
-
-        # Appeler votre algorithme KNN ici
+        
+        print(f"Image shape: {image_array.shape}")
+        print(f"Classification avec K={k} et distance_max={dist_max}")
+        
+        # TODO: Appeler votre algorithme KNN
         # predicted_label = your_knn_classifier.classify(image_array, k=k, dist_max=dist_max)
-
-        # Temporaire pour tester
-        self.label_classified.text = f"K={k}, D={dist_max:.2f}"
+        
+        # Pour tester, afficher des infos
+        self.label_classified.text = f"Shape: {image_array.shape}"
+        
+        # Exemple avec votre KNN :
+        # self.label_classified.text = predicted_label
+    
+    
+    # ============================================================================
+    # ALTERNATIVE : Si QtNpConvert a déjà une méthode de conversion
+    # ============================================================================
+    
+    # Vérifiez si votre classe QtNpConvert possède déjà des méthodes comme :
+    # - QtNpConvert.np_array_from_qimage(qimage)
+    # - QtNpConvert.qimage_to_numpy(qimage)
+    
+    # Si oui, utilisez directement :
+    
+    def get_current_image_as_array_simple(self):
+        """Version simplifiée si QtNpConvert a la conversion"""
+        
+        image_info = self.get_current_image_info()
+        
+        if image_info is None:
+            return None
+        
+        # image_info[6] contient l'image en PNG
+        qimage = QtNpConvert.qimage_from_png(image_info[6])
+        
+        if qimage.is_null():
+            return None
+        
+        # Si QtNpConvert a une méthode de conversion (à vérifier)
+        image_array = QtNpConvert.np_array_from_qimage(qimage)
+        
+        return image_array
+    
+    
+    # ============================================================================
+    # EXEMPLE DE STRUCTURE COMPLÈTE POUR KNN
+    # ============================================================================
+    
+    class KNNImageClassifier:
+        """Exemple de structure pour votre classificateur KNN"""
+        
+        def __init__(self, training_images, training_labels):
+            """
+            Args:
+                training_images: numpy array shape (n_samples, 22500)
+                training_labels: numpy array shape (n_samples,)
+            """
+            self.training_images = training_images
+            self.training_labels = training_labels
+        
+        def classify(self, test_image, k=3, dist_max=1.0):
+            """
+            Classifie une image de test
+            
+            Args:
+                test_image: numpy array shape (22500,)
+                k: nombre de voisins
+                dist_max: distance maximale acceptable
+            
+            Returns:
+                label prédit (str)
+            """
+            # Calculer les distances euclidiennes
+            distances = np.linalg.norm(self.training_images - test_image, axis=1)
+            
+            # Trouver les k plus proches voisins
+            k_nearest_indices = np.argsort(distances)[:k]
+            k_nearest_distances = distances[k_nearest_indices]
+            
+            # Filtrer par distance max
+            valid_indices = k_nearest_indices[k_nearest_distances <= dist_max]
+            
+            if len(valid_indices) == 0:
+                return "Inconnu"
+            
+            # Vote majoritaire
+            k_nearest_labels = self.training_labels[valid_indices]
+            unique, counts = np.unique(k_nearest_labels, return_counts=True)
+            predicted_label = unique[np.argmax(counts)]
+            
+            return predicted_label
 
 
 
