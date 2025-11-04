@@ -1,4 +1,5 @@
 Commande pour restaurer la base de données KlustR
+pg_restore --host=localhost --port=5432 --username=postgres --dbname=postgres klustr.dump
 
 Commande (CMD):
 "C:\Program Files\PostgreSQL\15\bin\pg_restore.exe" --host=localhost --port=5432 --username=postgres --dbname=postgres C:/travail/klustr.dump

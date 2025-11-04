@@ -10,19 +10,18 @@ def get_perimeter(image):
     
     perimeter = np.count_nonzero(np.diff(image)) + np.count_nonzero(np.diff(image.T))
 
-    # transitions_y = np.append(transitions_y, np.where(np.count_nonzero(np.diff(image))))
-
-    # transitions_x = np.where(np.diff(image.T))
-    # transitions_x = np.append(transitions_x, np.where(np.count_nonzero(np.diff(image.T))))
+    #transitions_y = np.append(transitions_y, np.where(np.count_nonzero(np.diff(image))))
 
     transitions = np.where(np.diff(image))
-
-    size = transitions
+    transitions = np.append(transitions, np.where(np.diff(image.T)))
+    #print(transitions)
+    #transitions_y = np.where(np.diff(image))
+    #transitions_x = np.where(np.diff(image.T))
     # perimetre diagonal
     hypo = ((1)**2 + (1)**2)**0.5
 
-    for y in range(transitions.size):
-        print(y)
+    # for y in range(transitions.size):
+    #     print(y)
     #     i, j = (transitions[0][y+2], transitions[1][y+2])
     #     print(pt_ici)
 
@@ -49,8 +48,10 @@ def get_perimeter(image):
     return perimeter
 
 def calcul_indice_complexite(image, pt):
-    c = 1 - (4 * pi * get_area(image, 1))/(get_perimeter)**2 
-    return c 
+    area = get_area(image,pt)
+    perimeter = get_perimeter(image)
+    c = 1 - ((4*pi * area)/(perimeter**2))
+    return round(c,4) 
 
 
 def get_area(image, pt):
@@ -112,7 +113,7 @@ image_test2 = [ [0,0,0,0,0,0,0,0],
 # print(f'aire grand cercle : {get_area(image_test, 1)}')
 # print(f' aire externe du cercle : {get_area(image_test, 0)}')
 print(f' perimetre grand cercle : {get_perimeter(image_test)}')
-
+print(f'index de complexité : {calcul_indice_complexite(image_test, 1)}')
 
 # print(f'aire du petit carré {get_area(image_test2, 1)}')
 # print(f'aire externe carré: {get_area(image_test2, 0)}')

@@ -17,6 +17,7 @@ class KNN:
         
         image = np.array(image)
         dimy, dimx = image.shape #pour obtenir la taille pour chacune des dimensions selon les axes y et x
+        print(f'{dimx}')
         perimeter = 0
         # liste = np.array(image)
         # dimx = liste.shape[0]
@@ -136,6 +137,7 @@ class KNN:
                     [0,0,1,1,1,1,0,0],
                     [0,0,0,0,0,0,0,0],
                     [0,0,0,0,0,0,0,0]]
+
 
     print(f'aire grand cercle : {get_area(image_test, 1)}')
     print(f' aire externe du cercle : {get_area(image_test, 0)}')
