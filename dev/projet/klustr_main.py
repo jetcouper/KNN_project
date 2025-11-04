@@ -1,6 +1,6 @@
 import sys
 import klustr_3d as Animation
-
+import numpy as np
 # -----------------------------------------------------------------------------
 import PySide6 
 from __feature__ import snake_case, true_property # type: ignore[import-not-found]
@@ -941,13 +941,7 @@ class Ui_klustr3DDataWidget(QWidget):
 
 
 
-    def classify_current_image(self):
-        """Exemple de méthode pour classifier l'image actuelle"""
-        image_info = self.get_current_image_info()
-        
-        if image_info is None:
-            self.label_classified.text = "Aucune image sélectionnée"
-            return
+    
     
     @Slot()
     def about_klustrWidget(self):
@@ -1017,22 +1011,79 @@ class Ui_klustr3DDataWidget(QWidget):
         """Retourne la valeur actuelle de la distance max"""
         return self.scroll_bar_dist.value / 10.0
     
-    @Slot()
-    def classify_current_image(self):
-        """Exemple de méthode pour classifier l'image actuelle"""
+    def get_current_image_info(self):
+        """Retourne les informations de l'image actuellement sélectionnée"""
+
+        if not hasattr(self, 'cmb_image') or not hasattr(self, 'image_combobox_model'):
+            return None
+
+        current_index = self.cmb_image.current_index
+
+        if current_index < 0:
+            return None
+
+        item = self.image_combobox_model.item(current_index)
+
+        if item is None:
+            return None
+
+        return item.data(Qt.UserRole)
+    
+    def get_current_image_as_array(self):
+        """Retourne l'image actuelle sous forme de numpy array (150, 150)"""
+
         image_info = self.get_current_image_info()
 
         if image_info is None:
-            self.label_classified.text = "Aucune image sélectionnée"
+            return None
+
+        qimage = QtNpConvert.qimage_from_png(image_info[6])
+
+        if qimage.is_null():
+            return None
+        
+        image_array = QtNpConvert.np_from_qimage(qimage)
+
+        return image_array
+
+
+    def get_current_image_flattened(self):
+        """
+        Retourne l'image aplatie pour KNN
+        Shape: (22500,) avec valeurs 0 ou 1
+        """
+
+        image_array = self.get_current_image_as_array()
+
+        if image_array is None:
+            return None
+
+        # Aplatir : (150, 150) -> (22500,)
+        return image_array.flatten()
+
+
+
+
+    @Slot()
+    def classify_current_image(self):
+        image_array = self.get_current_image_flattened()
+    
+        if image_array is None:
+            self.label_classified.text = "Aucune image"
             return
 
-        # Récupérer les paramètres KNN
         k = self.get_k_value()
         dist_max = self.get_dist_max_value()
-        #algorithme KNN ici
-        # result = your_knn_classifier.classify(image_info, k=k, dist_max=dist_max)
-        print(f"Classification avec K={k} et distance_max={dist_max}")
-        # self.label_classified.text = result
+
+        #print(f"Image shape: {image_array.shape}")  # (22500,)
+        #print(f"Image values: {np.unique(image_array)}")  # [0 1]
+        #print(f"Classification avec K={k}, dist_max={dist_max}")
+
+        # Appeler votre algorithme KNN ici
+        # predicted_label = your_knn_classifier.classify(image_array, k=k, dist_max=dist_max)
+
+        # Temporaire pour tester
+        self.label_classified.text = f"K={k}, D={dist_max:.2f}"
 
 
 
