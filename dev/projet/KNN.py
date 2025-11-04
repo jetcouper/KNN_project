@@ -24,8 +24,8 @@ class KNN:
         masque = np.zeros((dimy, dimx), dtype=int) #crée une matrice temporaire de même taille que l'image remplie de 0 
         
         # ici on retire chaque dernier point des extrémités => (i - 1), (i + 1)
-        for i in range(1, dimy - 1):
-            for j in range(1, dimx - 1):
+        for i in range(0, dimy - 1):
+            for j in range(0, dimx - 1):
             
                  #toutes les voisins à vérifier sauf les extrémités 
                 all_voisins = [image[i - 1, j - 1], image[i - 1, j], image [i - 1, j + 1], #8 voisins à vérifier 
@@ -33,21 +33,36 @@ class KNN:
                                 image [i + 1, j - 1], image[i + 1, j], image[i + 1, j + 1]  
                             ]
                 
+                # pour les voisins en diagonal, distance euclidienne 
+                hypo = ((1)**2 + (1)**2)**0.5
+                #hypo = 1.41421356
+
                 if image[i, j] == 1: #pour chaque pixel
+
+                    # if image[i - 1, j - 1] == 0: #haut gauche
+                    #     perimeter += hypo #racine 2
                     
-                    if image[i - 1, j] == 0: #si le pixel en haut est vide, alors est en bordure (perimetre)
+                    if image[i - 1, j] == 0: #haut
+                        perimeter += 1
+                    
+                    # if image[i - 1, j + 1] == 0: #haut droite
+                    #     perimeter += hypo #racine 2
+
+                    if image[i, j - 1] == 0: #gauche
                         perimeter += 1
                     
                     if image[i, j + 1] == 0: #droite
                         perimeter += 1
-                        
+    
+                    # if image[i + 1, j - 1] == 0: #bas gauche
+                    #     perimeter += hypo #racine 2
+
                     if image[i + 1, j] == 0: #bas 
                         perimeter += 1 
                         
-                    if image[i, j -1] == 0: #gauche
-                        perimeter += 1
-                        
-                        
+                    # if image[i + 1, j + 1] == 0: #bas droite
+                    #     perimeter += hypo #racine 2
+
                 # verif_nbvoisins = sum(all_voisins)
             
                 # if (verif_nbvoisins <= 7 and image[i, j] == 1): #si on a moins 1 voisin et qu'on est un pixel de l'image
@@ -67,7 +82,7 @@ class KNN:
         
         #perimeter = np.sum(masque) #on retient tout ce qui équivaut à 1, donc le contour de l'image
         
-        return perimeter
+        return round(perimeter,2)
 
     def get_area(image, pt):
         
