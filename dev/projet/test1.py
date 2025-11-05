@@ -11,17 +11,17 @@ class test1:
         self.y_train = None
         self.z_train = None
         
-        credential = PostgreSQLCredential(password='AAAaaa123')
-        dao = PostgreSQLKlustRDAO(credential)
+        # credential = PostgreSQLCredential(password='AAAaaa123')
+        # dao = PostgreSQLKlustRDAO(credential)
         
-        self.liste_matrices = dao.all_images_to_np(10)
-        print(f'taille de la liste de matrices : {len(self.liste_matrices)}')
+        # self.liste_matrices = dao.all_images_to_np(10)
+        # print(f'taille de la liste de matrices : {len(self.liste_matrices)}')
         
-        if self.liste_matrices:
-            print("Forme de la première image :", self.liste_matrices[0].shape)
+        # if self.liste_matrices:
+        #     print("Forme de la première image :", self.liste_matrices[0].shape)
            
-        else:
-            print("Aucune image")
+        # else:
+        #     print("Aucune image")
 
     def fit(self, X, Y, Z):
         self.X_train = X
@@ -115,7 +115,7 @@ class test1:
         return area
 
     def get_area_too(image):
-        return np.sum(image)
+        return np.sum(image[image == 1])
 
     # on fait la distance euclidienne
     
