@@ -1236,9 +1236,11 @@ class klustRSingleTest(QWidget):
         # Pour tester, afficher des infos
         self.label_classified.text = f"Shape: {image_array.shape}"
 
-        self.test = test1(image_array,self.klustr_dao)
+        self.test = test1(image_array)
         perimeter = test1.get_perimeter(image_array)
-        
+        print(f'perimetre = {perimeter}')
+        area = test1.get_area(image_array, 0)
+        print(f'aire = {area}')
 
         # Ajouter vos séries de points via le KNN effectué
         #return KNN
