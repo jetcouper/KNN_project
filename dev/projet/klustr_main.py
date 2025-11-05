@@ -1,6 +1,6 @@
 import sys
 import klustr_3d as Animation
-from test import test1
+from Axe1 import Axe1
 import numpy as np
 # -----------------------------------------------------------------------------
 import PySide6 
@@ -1236,11 +1236,13 @@ class klustRSingleTest(QWidget):
         # Pour tester, afficher des infos
         self.label_classified.text = f"Shape: {image_array.shape}"
 
-        self.test = test1(image_array)
-        perimeter = test1.get_perimeter(image_array)
-        print(f'perimetre = {perimeter}')
-        area = test1.get_area(image_array, 0)
+      
+        area = Axe1.get_area(image_array, 0)
         print(f'aire = {area}')
+        perimeter = Axe1.get_perimeter(image_array,0)
+        print(f'perimetre = {perimeter}')
+        indice_complexite = Axe1.calcul_indice_complexite(image_array,0)
+        print(f'{indice_complexite}')
 
         # Ajouter vos séries de points via le KNN effectué
         #return KNN
