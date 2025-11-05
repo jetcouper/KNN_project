@@ -1,121 +1,193 @@
 import numpy as np
-from math import *
 
-def get_perimeter(image):
-    
-    image = np.array(image)
-    dimy, dimx = image.shape #pour obtenir la taille pour chacune des dimensions selon les axes y et x
-    perimeter = 0
-    #masque = np.zeros((dimy, dimx), dtype=int) #crée une matrice temporaire de même taille que l'image remplie de 0 
-    
-    perimeter = np.count_nonzero(np.diff(image)) + np.count_nonzero(np.diff(image.T))
+from db_credential import PostgreSQLCredential
+from klustr_dao import PostgreSQLKlustRDAO
 
-    #transitions_y = np.append(transitions_y, np.where(np.count_nonzero(np.diff(image))))
-
-    transitions = np.where(np.diff(image))
-    transitions = np.append(transitions, np.where(np.diff(image.T)))
-    #print(transitions)
-    #transitions_y = np.where(np.diff(image))
-    #transitions_x = np.where(np.diff(image.T))
-    # perimetre diagonal
-    hypo = ((1)**2 + (1)**2)**0.5
-
-    # for y in range(transitions.size):
-    #     print(y)
-    #     i, j = (transitions[0][y+2], transitions[1][y+2])
-    #     print(pt_ici)
-
-    #     all_voisins = [image[i - 1, j - 1], image[i - 1, j], image [i - 1, j + 1], #8 voisins à vérifier 
-    #                             image[i, j - 1],                      image[i, j + 1],
-    #                             image [i + 1, j - 1], image[i + 1, j], image[i + 1, j + 1]  
-    #                         ]
+class test1:
+    def __init__(self, image, klustrDao):
+        self.image = image
+        self.k = 0  # Number of neighbors
+        self.X_train = None
+        self.y_train = None
+        self.z_train = None
         
-    #     if sum(all_voisins) == 3:
-    #         perimeter += hypo
-    #     else:
-    #         perimeter += 1
-   
+        #credential = PostgreSQLCredential(password='AAAaaa123')
+        dao = klustrDao
+        
+        #self.liste_matrices = dao.all_images_to_np(10)
+        #print(f'taille de la liste de matrices : {len(self.liste_matrices)}')
+        #
+        #if self.liste_matrices:
+        #    print("Forme de la première image :", self.liste_matrices[0].shape)
+        #   
+        #else:
+        #    print("Aucune image")
+
+    def fit(self, X, Y, Z):
+        self.X_train = X
+        self.y_train = Y
+        self.z_train = Z
+
     
-    #     if y+2 >= transitions[0].size: break
-    #     pt_suivant = (transitions[0][y+2], transitions[1][y+2])
-    #     if (abs(pt_suivant[0] - pt_ici[0]) and abs(pt_suivant[1] - pt_ici[1])):
-    #         image[transitions[1][y]][transitions[0][y]] = 4
-    # nb_diagonales = np.count_nonzero(image[image == 4])
-    # print(nb_diagonales)
-    # for i in range(nb_diagonales):
-    #     perimeter += 0.414
+    def get_perimeter(image):
+        
+        image = np.array(image)
+        dimy, dimx = image.shape #pour obtenir la taille pour chacune des dimensions selon les axes y et x
+        print(f'{dimx}')
+        perimeter = 0
+        # liste = np.array(image)
+        # dimx = liste.shape[0]
+        # dimy = liste.shape[1]
+        masque = np.zeros((dimy, dimx), dtype=int) #crée une matrice temporaire de même taille que l'image remplie de 0 
+        
+        # ici on retire chaque dernier point des extrémités => (i - 1), (i + 1)
+        for i in range(0, dimy - 1):
+            for j in range(0, dimx - 1):
+            
+                 #toutes les voisins à vérifier sauf les extrémités 
+                all_voisins = [image[i - 1, j - 1], image[i - 1, j], image [i - 1, j + 1], #8 voisins à vérifier 
+                                image[i, j - 1],                      image[i, j + 1],
+                                image [i + 1, j - 1], image[i + 1, j], image[i + 1, j + 1]  
+                            ]
+                
+                # pour les voisins en diagonal, distance euclidienne 
+                hypo = ((1)**2 + (1)**2)**0.5
+                #hypo = 1.41421356
+
+                if image[i, j] == 1: #pour chaque pixel
+
+                    # if image[i - 1, j - 1] == 0: #haut gauche
+                    #     perimeter += hypo #racine 2
+                    
+                    if image[i - 1, j] == 0: #haut
+                        perimeter += 1
+                    
+                    # if image[i - 1, j + 1] == 0: #haut droite
+                    #     perimeter += hypo #racine 2
+
+                    if image[i, j - 1] == 0: #gauche
+                        perimeter += 1
+                    
+                    if image[i, j + 1] == 0: #droite
+                        perimeter += 1
     
-    return perimeter
+                    # if image[i + 1, j - 1] == 0: #bas gauche
+                    #     perimeter += hypo #racine 2
 
-def calcul_indice_complexite(image, pt):
-    area = get_area(image,pt)
-    perimeter = get_perimeter(image)
-    c = 1 - ((4*pi * area)/(perimeter**2))
-    return round(c,4) 
+                    if image[i + 1, j] == 0: #bas 
+                        perimeter += 1 
+                        
+                    # if image[i + 1, j + 1] == 0: #bas droite
+                    #     perimeter += hypo #racine 2
 
+                # verif_nbvoisins = sum(all_voisins)
+            
+                # if (verif_nbvoisins <= 7 and image[i, j] == 1): #si on a moins 1 voisin et qu'on est un pixel de l'image
+                #  masque[i, j] = 1 #on indique dans la matrice masque l'emplacement où se trouve les extrémités contours
 
-def get_area(image, pt):
+        # for x in np.arange(dimx):
+        #     for y in np.arange(dimy):
+        #             if liste[x,y] == 1:
+        #                 for x in coordx:
+        #                     for y in coordy:
+        #                         if(np.any(liste[x + coordx, y + coordy]) == 0): #inclut 0 et extérieur
+        #                             pt = (x + coordx, y + coordy)
+        #                             if pt in liste_contour:
+        #                                 liste_contour.append(pt)
+        
+        # perimeter = len(liste_contour) # * ((1**2) + (1**2))**0.5 # on fait la distance euclidienne
+        
+        #perimeter = np.sum(masque) #on retient tout ce qui équivaut à 1, donc le contour de l'image
+        
+        return round(perimeter,2)
+
+    def get_area(image, pt):
+        
+        area = 0
+        liste = np.array(image)
+        dimx = liste.shape[0]
+        dimy = liste.shape[1]
+
+        for x in np.arange(dimx):
+            for y in np.arange(dimy):
+                if liste[x,y] == pt:
+                    area += 1
+        
+        return area
+
+    def get_area_too(image):
+        return np.sum(image)
+
+    # on fait la distance euclidienne
     
-    area = 0
-    liste = np.array(image)
-    dimx = liste.shape[0]
-    dimy = liste.shape[1]
 
-    for x in np.arange(dimx):
-        for y in np.arange(dimy):
-            if liste[x,y] == pt:
-                area += 1
+    image_test = [  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 
+                    [0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+                    [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+                    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+                    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+                    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+                    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+                    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+                    [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+                    [0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
+                    [0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] ]
     
-    return area
 
-def get_area_too(image):
-    return np.sum(image)
-
-
-
-
-# on fait la distance euclidienne
-
-
-image_test = [  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 
-                [0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
-                [0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
-                [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-                [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-                [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
-                [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-                [0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
-                [0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
-                [0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
-                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] ]
+    image_test2 = [ [0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0],
+                    [0,0,1,1,1,1,0,0],
+                    [0,0,1,1,1,1,0,0],
+                    [0,0,1,1,1,1,0,0],
+                    [0,0,1,1,1,1,0,0],
+                    [0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0]]
 
 
-image_test2 = [ [0,0,0,0,0,0,0,0],
-                [0,0,0,0,0,0,0,0],
-                [0,0,1,1,1,1,0,0],
-                [0,0,1,1,1,1,0,0],
-                [0,0,1,1,1,1,0,0],
-                [0,0,1,1,1,1,0,0],
-                [0,0,0,0,0,0,0,0],
-                [0,0,0,0,0,0,0,0]]
+    print(f'aire grand cercle : {get_area(image_test, 1)}')
+    print(f' aire externe du cercle : {get_area(image_test, 0)}')
+    print(f' perimetre grand cercle : {get_perimeter(image_test)}')
 
-# print(f'aire grand cercle : {get_area(image_test, 1)}')
-# print(f' aire externe du cercle : {get_area(image_test, 0)}')
-print(f' perimetre grand cercle : {get_perimeter(image_test)}')
-print(f'index de complexité : {calcul_indice_complexite(image_test, 1)}')
 
-# print(f'aire du petit carré {get_area(image_test2, 1)}')
-# print(f'aire externe carré: {get_area(image_test2, 0)}')
-# print(f'perimetre carré {get_perimeter(image_test2)}')
+    print(f'aire du petit carré {get_area(image_test2, 1)}')
+    print(f'aire externe carré: {get_area(image_test2, 0)}')
+    print(f'perimetre carré {get_perimeter(image_test2)}')
 
+    # --- exécution du test
+if __name__ == "__main__":
+    
+    image_test = [  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 
+                    [0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+                    [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+                    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+                    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+                    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+                    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+                    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+                    [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+                    [0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
+                    [0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] ]
+    
+    #test1(image_test)

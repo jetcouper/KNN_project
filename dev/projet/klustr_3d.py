@@ -4,7 +4,6 @@ import os
 from types import NoneType
 from enum import Enum, auto
 from random import uniform, randint, choice
-
 import numpy as np
 
 
@@ -781,31 +780,8 @@ class QScatter3dViewer(QWidget):
             self.__scatter.remove_series(serie)
         QScatter3dViewer.__clear_series()
         self.__update_legend()
-    
+ 
 
 
 
 
-class KnnImageClassificationWidget(QWidget):
-    """Widget pour la classification KNN avec visualisation 3D"""
-    
-    def __init__(self, klustr_dao, parent=None):
-        super().__init__(parent)
-        
-        self.klustr_dao = klustr_dao
-        
-        # Créer le viewer 3D avec rotation automatique
-        self.viewer_3d = QScatter3dViewer(auto_rotate=True)
-        self.viewer_3d.title = "KNN Classification 3D"
-        self.viewer_3d.axis_x.title = "Axis 1"
-        self.viewer_3d.axis_y.title = "Axis 2"
-        self.viewer_3d.axis_z.title = "Axis 3"
-        
-        # Layout principal - JUSTE le viewer 3D, rien d'autre
-        layout = QVBoxLayout(self)
-        layout.add_widget(self.viewer_3d)
-        layout.contents_margins = QMargins(0, 0, 0, 0)
-    
-    def add_classification_data(self, data3d, color, title=''):
-        """Ajoute des données de classification au viewer 3D"""
-        self.viewer_3d.add_serie(data3d, color, title)
