@@ -1,5 +1,6 @@
 import sys
 import klustr_3d as Animation
+from test import test1
 import numpy as np
 # -----------------------------------------------------------------------------
 import PySide6 
@@ -629,7 +630,7 @@ class KlustRDatasetItem(QStandardItem):
     
 
 class klustRDataset(QWidget):
-    def __init__(self, klustr_dao, parent=None):
+    def __init__(self, klustr_dao ,parent=None):
         super().__init__(parent)
         self.dataset_model = QStandardItemModel()
         #self.set_model(self.dataset_model)
@@ -795,45 +796,54 @@ class klustRDataset(QWidget):
 
     @Slot()
     def update_dataset_stats_simple(self):
-        """Version simplifiée utilisant directement les données du DAO"""
+        #Version simplifiée utilisant directement les données du DAO
         selected_item = self.get_selected_dataset_item()
-        
-        if selected_item is None:
+        if hasattr(self, '_updating_stats') and self._updating_stats:
             return
         
-        if selected_item.id == -1:
-            # "Toutes les images"
-            total_stats = self.klustr_dao.total_label_image_count
-            if total_stats:
-                self.label_category_count.text = str(total_stats[0][0])
-                self.label_total_count.text = str(total_stats[0][1])
-                self.label_training_count.text = "-"
-                self.label_test_count.text = "-"
-                self.label_translated_value.text = "mixte"
-                self.label_rotated_value.text = "mixte"
-                self.label_scaled_value.text = "mixte"
-        else:
-            # Récupérer les informations du dataset directement
-            for dataset in self.klustr_dao.available_datasets:
-                if dataset[0] == selected_item.id:
-                    # dataset[0] = id
-                    # dataset[2] = translated
-                    # dataset[3] = rotated
-                    # dataset[4] = scaled
-                    # dataset[5] = label_count
-                    # dataset[6] = training_image_count
-                    # dataset[7] = test_image_count
-                    # dataset[8] = total_image_count
-                    
-                    self.label_category_count.text = str(dataset[5])
-                    self.label_training_count.text = str(dataset[6])
-                    self.label_test_count.text = str(dataset[7])
-                    self.label_total_count.text = str(dataset[8])
-                    
-                    self.label_translated_value.text = "true" if dataset[2] else "false"
-                    self.label_rotated_value.text = "true" if dataset[3] else "false"
-                    self.label_scaled_value.text = "true" if dataset[4] else "false"
-                    break
+        self._updating_stats = True
+        try:
+            selected_item = self.get_selected_dataset_item()
+
+            if selected_item is None:
+                return
+
+            if selected_item.id == -1:
+                # "Toutes les images"
+                total_stats = self.klustr_dao.total_label_image_count
+                if total_stats:
+                    self.label_category_count.text = str(total_stats[0][0])
+                    self.label_total_count.text = str(total_stats[0][1])
+                    self.label_training_count.text = "-"
+                    self.label_test_count.text = "-"
+                    self.label_translated_value.text = "mixte"
+                    self.label_rotated_value.text = "mixte"
+                    self.label_scaled_value.text = "mixte"
+            else:
+                # Récupérer les informations du dataset directement
+                for dataset in self.klustr_dao.available_datasets:
+                    if dataset[0] == selected_item.id:
+                        # dataset[0] = id
+                        # dataset[2] = translated
+                        # dataset[3] = rotated
+                        # dataset[4] = scaled
+                        # dataset[5] = label_count
+                        # dataset[6] = training_image_count
+                        # dataset[7] = test_image_count
+                        # dataset[8] = total_image_count
+
+                        self.label_category_count.text = str(dataset[5])
+                        self.label_training_count.text = str(dataset[6])
+                        self.label_test_count.text = str(dataset[7])
+                        self.label_total_count.text = str(dataset[8])
+
+                        self.label_translated_value.text = "true" if dataset[2] else "false"
+                        self.label_rotated_value.text = "true" if dataset[3] else "false"
+                        self.label_scaled_value.text = "true" if dataset[4] else "false"
+                        break
+        finally:
+            self._updating_stats = False
+
         
 
 
@@ -992,6 +1002,7 @@ class klustRSingleTest(QWidget):
     def update_images_from_dataset(self):
         """Charge toutes les images du dataset sélectionné dans cmb_image"""
 
+
         if not hasattr(self, 'image_combobox_model'):
             return
 
@@ -1002,17 +1013,18 @@ class klustRSingleTest(QWidget):
             return
 
         # Bloquer les signaux pendant la mise à jour
-        self.cmb_image.block_signals = True
-
+        blocker_image = QtCore.QSignalBlocker(self.cmb_image)
+        blocker_model = QtCore.QSignalBlocker(self.image_combobox_model)
+        blocker_dataset = QtCore.QSignalBlocker(self.klustr_dataset_widget.cmb_dataset)
+        
         # Vider le modèle
         self.image_combobox_model.clear()
 
         selected_item = self.klustr_dataset_widget.get_selected_dataset_item()
 
         if selected_item is None:
-            self.cmb_image.block_signals = False
             return
-
+        
         if selected_item.id == -1:
             # Toutes les images disponibles
             all_labels = self.klustr_dao.available_labels
@@ -1063,14 +1075,16 @@ class klustRSingleTest(QWidget):
 
                     self.image_combobox_model.append_row(item)
 
-        # Débloquer les signaux
-        self.cmb_image.block_signals = False
-
+        
+        
+        del blocker_image
+        del blocker_model
+        del blocker_dataset
         # Sélectionner la première image si disponible
         if self.image_combobox_model.row_count() > 0:
             self.cmb_image.current_index = 0
             # Forcer l'affichage de la première image
-            self.update_image_display()
+            self.update_image_display
 
     @Slot()
     def update_image_display(self):
@@ -1132,7 +1146,11 @@ class klustRSingleTest(QWidget):
         self.label_classified.text ="non-classifié"
 
     
+
+ 
     
+
+
     def get_current_image_info(self):
         #Retourne les informations de l'image actuellement sélectionnée
 
@@ -1172,7 +1190,7 @@ class klustRSingleTest(QWidget):
 
 
     @Slot()
-    def classify_current_image(self):
+    def classify_current_image(self, k=None, dist_max=None):
         """Classifie l'image actuelle avec KNN"""
         #image_array = self.get_current_image_as_array_simple()
 
@@ -1183,8 +1201,12 @@ class klustRSingleTest(QWidget):
             return
         
         # Récupérer les paramètres
-        k = self.get_k_value()
-        dist_max = self.get_dist_max_value()
+        if k is None:
+            k = 3
+        if dist_max is None:
+            dist_max = 0.5
+
+        
         
         print(f"Image shape: {image_array.shape}")
         print(f"Classification avec K={k} et distance_max={dist_max}")
@@ -1195,9 +1217,13 @@ class klustRSingleTest(QWidget):
         # Pour tester, afficher des infos
         self.label_classified.text = f"Shape: {image_array.shape}"
 
+        self.test = test1(image_array,self.klustr_dao)
+        perimeter = test1.get_perimeter(image_array)
+        
+
         # Ajouter vos séries de points via le KNN effectué
         #return KNN
-        return np.array() #KNN
+        return np.array([]) #KNN Vas planté
         
     
     
@@ -1234,8 +1260,12 @@ class KnnImageClassificationWidget(QWidget):
         self.uiDataset.setupUi(self.control_widget)
         self.uiSingleTest.setupUi(self.control_widget)
         self.uiParameter.setupUi(self.control_widget)
+
+        self.uiDataset.cmb_dataset.currentIndexChanged.connect(
+            self.uiSingleTest.update_images_from_dataset
+        )
         #self.viewer_3d.add_serie
-        self.uiDataset.cmb_dataset.currentIndexChanged.connect(self.uiSingleTest.update_images_from_dataset)
+        
 
 
         # Fixer la largeur du panneau de contrôle
@@ -1247,9 +1277,18 @@ class KnnImageClassificationWidget(QWidget):
         layout.add_widget(self.control_widget,1)
         layout.add_widget(self.viewer_3d , 2)
         layout.contents_margins = (QMargins(0, 0, 0, 0))
+        self.uiSingleTest.btn_classify.clicked.disconnect()
+        self.uiSingleTest.btn_classify.clicked.connect(self.on_classify_clicked)
 
-        self.uiSingleTest.btn_classify.clicked.connect(self.methode)
-    
+    @Slot()
+    def on_classify_clicked(self):
+        k = self.uiParameter.get_k_value()
+        dist_max = self.uiParameter.get_dist_max_value()
+        
+        # Appeler avec les valeurs
+        self.array = self.uiSingleTest.classify_current_image(k=k, dist_max=dist_max)
+        
+
     @Slot()
     def methode(self):
         self.valeurKNN = np.array()
@@ -1266,8 +1305,8 @@ def main():
     app = QApplication(sys.argv)
 
     #A changer selon votre configuration d'ordinateur
-    credential = PostgreSQLCredential(password='Yoshi9603')
-    #credential = PostgreSQLCredential(password='AAAaaa123')
+    #credential = PostgreSQLCredential(password='Yoshi9603')
+    credential = PostgreSQLCredential(password='AAAaaa123')
     # credential = PostgreSQLCredential(password='123')
 
 
