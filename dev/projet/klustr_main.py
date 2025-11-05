@@ -1031,13 +1031,15 @@ class klustRSingleTest(QWidget):
         if self.klustr_dataset_widget is None:
             return
 
-        # Bloquer les signaux pendant la mise à jour
-        blocker_image = QtCore.QSignalBlocker(self.cmb_image)
-        blocker_model = QtCore.QSignalBlocker(self.image_combobox_model)
-        blocker_dataset = QtCore.QSignalBlocker(self.klustr_dataset_widget.cmb_dataset)
-        
-        # Vider le modèle
-        self.image_combobox_model.clear()
+        try:
+           #Pour temporairement modifier le cmb_image
+           self.cmb_image.currentIndexChanged.disconnect(self.update_image_display)
+        except:
+           pass  # Ignorer si déjà déconnecté
+       
+        # Créer un nouveau modèle propre
+        self.image_combobox_model = QStandardItemModel()
+        self.cmb_image.set_model(self.image_combobox_model)
 
         selected_item = self.klustr_dataset_widget.get_selected_dataset_item()
 
@@ -1095,15 +1097,12 @@ class klustRSingleTest(QWidget):
                     self.image_combobox_model.append_row(item)
 
         
-        
-        del blocker_image
-        del blocker_model
-        del blocker_dataset
+        self.cmb_image.currentIndexChanged.connect(self.update_image_display)
         # Sélectionner la première image si disponible
         if self.image_combobox_model.row_count() > 0:
             self.cmb_image.current_index = 0
             # Forcer l'affichage de la première image
-            self.update_image_display
+            self.update_image_display()
 
     @Slot()
     def update_image_display(self):
