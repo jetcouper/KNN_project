@@ -532,6 +532,72 @@ class KlustRDataSourceViewWidget(QWidget):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class KlustRDatasetItem(QStandardItem):
     def __init__(self, id, name, translated='', rotated='', scaled='', label_count='', training_image_count='', test_image_count=''):
         super().__init__(name)
@@ -558,17 +624,137 @@ class KlustRDatasetItem(QStandardItem):
     @property
     def name(self):
         return self._name
+    
 
+    
 
-
-
-class KlustR3DDatasetComboBox(QComboBox):
-    def __init__(self, parent = None):
+class klustRDataset(QWidget):
+    def __init__(self, klustr_dao, parent=None):
         super().__init__(parent)
-
         self.dataset_model = QStandardItemModel()
-        self.set_model(self.dataset_model)
+        #self.set_model(self.dataset_model)
+        self.klustr_dao = klustr_dao
 
+    @Slot()
+    def setupUi(self, klustrDataWidget):
+        main_layout = QVBoxLayout(self)
+
+        self.grbDataset = QGroupBox("Dataset")
+        self.layout_dataset = QVBoxLayout(self.grbDataset)
+
+        self.cmb_dataset = QComboBox()
+        self.cmb_dataset.set_model(self.dataset_model)
+        self.update_datasets(self.klustr_dao)
+        self.cmb_dataset.currentIndexChanged.connect(self.update_dataset_stats_simple)
+        self.layout_dataset.add_widget(self.cmb_dataset)
+
+        container_widget = QWidget()
+        self.layout_datasetText = QHBoxLayout(container_widget)
+        self.layout_dataset.add_widget(container_widget)
+
+        self.grbIncluded = QGroupBox()
+        self.grbIncluded.title = "Inclut dans Dataset"
+        layout_included = QVBoxLayout(self.grbIncluded)
+
+        self.label_category = QLabel("Category count:")
+        self.label_category_count = QLabel("0")
+        self.label_training = QLabel("Training image count:")
+        self.label_training_count = QLabel("0")
+        self.label_test = QLabel("Test image count:")
+        self.label_test_count = QLabel("0")
+        self.label_total_image = QLabel("Total image count:")
+        self.label_total_count = QLabel("0")
+
+        category_layout = QHBoxLayout()
+        category_layout.add_widget(self.label_category)
+        category_layout.add_widget(self.label_category_count)
+        category_layout.add_stretch()
+
+        training_layout = QHBoxLayout()
+        training_layout.add_widget(self.label_training)
+        training_layout.add_widget(self.label_training_count)
+        training_layout.add_stretch()
+
+        test_layout = QHBoxLayout()
+        test_layout.add_widget(self.label_test)
+        test_layout.add_widget(self.label_test_count)
+        test_layout.add_stretch()
+
+        total_layout = QHBoxLayout()
+        total_layout.add_widget(self.label_total_image)
+        total_layout.add_widget(self.label_total_count)
+        total_layout.add_stretch()
+
+        layout_included.add_layout(category_layout)
+        layout_included.add_layout(training_layout)
+        layout_included.add_layout(test_layout)
+        layout_included.add_layout(total_layout)
+
+        self.layout_datasetText.add_widget(self.grbIncluded)
+
+        self.grbTransformation = QGroupBox()
+        self.grbTransformation.title = "Transformation"
+        layout_transformation = QVBoxLayout(self.grbTransformation)
+
+        self.label_translated = QLabel("Translated:")
+        self.label_translated_value = QLabel("false")
+        self.label_rotated = QLabel("Rotated:")
+        self.label_rotated_value = QLabel("false")
+        self.label_scaled = QLabel("Scaled:")
+        self.label_scaled_value = QLabel("false")
+
+        translate_layout = QHBoxLayout()
+        translate_layout.add_widget(self.label_translated)
+        translate_layout.add_widget(self.label_translated_value)
+        translate_layout.add_stretch()
+
+        rotated_layout = QHBoxLayout()
+        rotated_layout.add_widget(self.label_rotated)
+        rotated_layout.add_widget(self.label_rotated_value)
+        rotated_layout.add_stretch()
+
+        scaled_layout = QHBoxLayout()
+        scaled_layout.add_widget(self.label_scaled)
+        scaled_layout.add_widget(self.label_scaled_value)
+        scaled_layout.add_stretch()
+
+
+
+        layout_transformation.add_layout(translate_layout)
+        layout_transformation.add_layout(rotated_layout)
+        layout_transformation.add_layout(scaled_layout)
+
+
+        self.layout_datasetText.add_widget(self.grbTransformation)
+
+        main_layout.add_widget(self.grbDataset)
+
+        self.retranslateUi(klustrDataWidget)
+
+    @Slot()
+    def retranslateUi(self, klustrDataWidget):
+        klustrDataWidget.set_window_role = "klustrDataWidget"
+        self.grbDataset.title = "Dataset"
+        self.grbIncluded.title = "Inclut dans Dataset"
+        self.label_category.text = "Category count:"
+        self.label_training.text = "Training image count:"
+        self.label_test.text = "Test image count:"
+        self.label_total_image.text ="Total image count:"
+        self.label_category_count.text ="0"
+        self.label_training_count.text ="0"
+        self.label_test_count.text ="0"
+        self.label_total_count.text ="0"
+        self.grbTransformation.title = "Transformation"
+        self.label_translated.text ="Translated:"
+        self.label_rotated.text ="Rotated:"
+        self.label_scaled.text ="Scaled:"
+        self.label_translated_value.text ="false"
+        self.label_rotated_value.text ="false"
+        self.label_scaled_value.text ="false"
+
+        self.update_dataset_stats_simple()
+
+    @Slot()
     def update_datasets(self, klustr_dao):
         self.dataset_model.clear()
         
@@ -597,164 +783,20 @@ class KlustR3DDatasetComboBox(QComboBox):
             return item.id
         return None
     
+
     def get_selected_dataset_item(self):
         """Retourne l'item complet du dataset sélectionné"""
-        item = self.dataset_model.item(self.current_index)
+        current_index = self.cmb_dataset.current_index
+        item = self.dataset_model.item(current_index)
         if isinstance(item, KlustRDatasetItem):
             return item
         return None
-
-
-
-
-
-
-class UiKlustr3DDataWidget(QWidget):
-    def __init__(self, klustr_dao, parent=None):
-        
-        super().__init__(parent)
-        self.klustr_dao = klustr_dao
-
-
     
-
-
-    @Slot()
-    def setupUi(self, klustrDataWidget):
-        klustrDataWidget.resize(390, 628)
-        
-        self.grbDataset = QGroupBox(klustrDataWidget)
-        self.grbDataset.geometry = (QRect(19, 9, 351, 191))
-
-        
-
-        self.cmb_dataset = KlustR3DDatasetComboBox(self.grbDataset)
-        self.cmb_dataset.geometry = (QRect(20, 30, 321, 31))
-        self.cmb_dataset.update_datasets(self.klustr_dao)
-        self.cmb_dataset.currentIndexChanged.connect(self.update_dataset_stats_simple)
-
-        self.grbIncluded = QGroupBox(self.grbDataset)
-        self.grbIncluded.geometry = (QRect(20, 60, 191, 121))
-
-        self.label_category = QLabel(self.grbIncluded)
-        self.label_category.geometry = (QRect(10, 30, 91, 16))
-
-        self.label_training = QLabel(self.grbIncluded)
-        self.label_training.geometry = (QRect(10, 50, 121, 16))
-
-        self.label_test = QLabel(self.grbIncluded)
-        self.label_test.geometry = (QRect(10, 70, 101, 16))
-
-        self.label_total_image = QLabel(self.grbIncluded)
-        self.label_total_image.geometry = (QRect(10, 90, 111, 16))
-
-        self.label_category_count = QLabel(self.grbIncluded)
-        self.label_category_count.geometry = (QRect(150, 30, 30, 20))
-        self.label_category_count.alignment = (Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-
-        self.label_training_count = QLabel(self.grbIncluded)
-        self.label_training_count.geometry = (QRect(150, 50, 30, 20))
-        self.label_training_count.alignment = (Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-
-        self.label_test_count = QLabel(self.grbIncluded)
-        self.label_test_count.geometry = (QRect(150, 70, 30, 20))
-        self.label_test_count.alignment = (Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-
-        self.label_total_count = QLabel(self.grbIncluded)
-        self.label_total_count.geometry = (QRect(150, 90, 35, 20))
-        self.label_total_count.alignment = (Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-
-        self.grbTransformation = QGroupBox(self.grbDataset)
-        self.grbTransformation.geometry = (QRect(220, 60, 121, 121))
-
-        self.label_translated = QLabel(self.grbTransformation)
-        self.label_translated.geometry = (QRect(10, 30, 71, 16))
-
-        self.label_rotated = QLabel(self.grbTransformation)
-        self.label_rotated.geometry = (QRect(10, 50, 49, 16))
-
-        self.label_scaled = QLabel(self.grbTransformation)
-        self.label_scaled.geometry = (QRect(10, 70, 49, 16))
-
-        self.label_translated_value = QLabel(self.grbTransformation)
-        self.label_translated_value.geometry = (QRect(80, 30, 31, 20))
-
-        self.label_rotated_value = QLabel(self.grbTransformation)
-        self.label_rotated_value.geometry = (QRect(80, 50, 31, 16))
-
-        self.label_scaled_value = QLabel(self.grbTransformation)
-        self.label_scaled_value.geometry = (QRect(80, 70, 31, 16))
-
-        self.grb_simple_test = QGroupBox(klustrDataWidget)
-        self.grb_simple_test.geometry = (QRect(20, 200, 351, 271))
-
-        self.image_combobox_model = QStandardItemModel()
-        self.cmb_image = QComboBox(self.grb_simple_test)
-        self.cmb_image.geometry = (QRect(20, 30, 311, 24))
-        self.cmb_image.set_model(self.image_combobox_model)
-        self.cmb_image.currentIndexChanged.connect(self.update_image_display)
-
-
-        self.view_label_image = QLabel(self.grb_simple_test)
-        self.view_label_image.geometry = (QRect(20, 60, 311, 141))
-        self.view_label_image.style_sheet = (u"background-color : #313D4A; padding : 10px 10px 10px 10px;")
-        self.view_label_image.alignment = Qt.AlignCenter
-        self.view_label_image.scaled_contents = False
-
-        self.btn_classify = QPushButton(self.grb_simple_test)
-        self.btn_classify.geometry = (QRect(20, 210, 311, 24))
-        self.btn_classify.clicked.connect(self.classify_current_image)
-
-        self.label_classified = QLabel(self.grb_simple_test)
-        self.label_classified.geometry = (QRect(130, 240, 111, 20))
-        self.label_classified.alignment = (Qt.AlignmentFlag.AlignCenter)
-
-        self.grb_parametre = QGroupBox(klustrDataWidget)
-        self.grb_parametre.geometry = (QRect(20, 470, 351, 101))
-
-
-        self.scoll_bar_k = QScrollBar(self.grb_parametre)
-        self.scoll_bar_k.geometry = (QRect(120, 40, 221, 21))
-        self.scoll_bar_k.minimum = (1)
-        self.scoll_bar_k.maximum = (10)
-        self.scoll_bar_k.value = 3
-        self.scoll_bar_k.orientation = (Qt.Orientation.Horizontal)
-        self.scoll_bar_k.valueChanged.connect(self.update_k_value)
-
-        self.scroll_bar_dist = QScrollBar(self.grb_parametre)
-        self.scroll_bar_dist.geometry = (QRect(120, 75, 221, 21))
-        self.scroll_bar_dist.minimum = (1)
-        self.scroll_bar_dist.maximum = (10)
-        self.scroll_bar_dist.value = 5
-        self.scroll_bar_dist.orientation = (Qt.Orientation.Horizontal)
-        self.scroll_bar_dist.valueChanged.connect(self.update_dist_max_value)
-
-        self.label_k = QLabel(self.grb_parametre)
-        self.label_k.geometry = (QRect(10, 40, 49, 21))
-        self.label_k.alignment = (Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        
-
-        self.label_dist_max = QLabel(self.grb_parametre)
-        self.label_dist_max.geometry = (QRect(10, 80, 61, 16))
-
-        self.label_dist_max_value = QLabel(self.grb_parametre)
-        self.label_dist_max_value.geometry = (QRect(70, 80, 31, 20))
-
-        self.label_k_value = QLabel(self.grb_parametre)
-        self.label_k_value.geometry = (QRect(70, 41, 31, 20))
-
-        self.btn_about = QPushButton(klustrDataWidget)
-        self.btn_about.geometry = (QRect(20, 580, 351, 24))
-        self.btn_about.clicked.connect(self.about_klustrWidget)
-
-        self.retranslateUi(klustrDataWidget)
-        self.update_dataset_stats_simple()
-
 
     @Slot()
     def update_dataset_stats_simple(self):
         """Version simplifiée utilisant directement les données du DAO"""
-        selected_item = self.cmb_dataset.get_selected_dataset_item()
+        selected_item = self.get_selected_dataset_item()
         
         if selected_item is None:
             return
@@ -792,7 +834,159 @@ class UiKlustr3DDataWidget(QWidget):
                     self.label_rotated_value.text = "true" if dataset[3] else "false"
                     self.label_scaled_value.text = "true" if dataset[4] else "false"
                     break
+        
+
+
+class klustRParameter(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    @Slot()
+    def setupUi(self, klustrDataWidget):
+        main_layout = QVBoxLayout(self)
+
+        self.grb_parametre = QGroupBox("Paramètres Knn")
+        self.layout_parametre = QVBoxLayout(self.grb_parametre)
+
+        self.scoll_bar_k = QScrollBar()
+        self.scoll_bar_k.minimum = (1)
+        self.scoll_bar_k.maximum = (10)
+        self.scoll_bar_k.value = 3
+        self.scoll_bar_k.orientation = (Qt.Orientation.Horizontal)
+        self.scoll_bar_k.valueChanged.connect(self.update_k_value)
+        self.layout_parametre.add_widget(self.scoll_bar_k)
+
+        self.scroll_bar_dist = QScrollBar()
+        self.scroll_bar_dist.minimum = (1)
+        self.scroll_bar_dist.maximum = (10)
+        self.scroll_bar_dist.value = 5
+        self.scroll_bar_dist.orientation = (Qt.Orientation.Horizontal)
+        self.scroll_bar_dist.valueChanged.connect(self.update_dist_max_value)
+        self.layout_parametre.add_widget(self.scroll_bar_dist)
+
+        layout_k = QHBoxLayout()
+        self.label_k = QLabel()
+        self.label_k_value = QLabel()
+        layout_k.add_widget(self.label_k)
+        layout_k.add_widget(self.label_k_value)
+        layout_k.add_stretch()
+
+        layout_dist = QHBoxLayout()
+        self.label_dist_max = QLabel()
+        self.label_dist_max_value = QLabel()
+        layout_dist.add_widget(self.label_dist_max)
+        layout_dist.add_widget(self.label_dist_max_value)
+        layout_dist.add_stretch()
+        
+        layout_k_dist = QHBoxLayout()
+        layout_k_dist.add_layout(layout_k)
+        layout_k_dist.add_layout(layout_dist)
+        layout_k_dist.add_stretch()
+        self.layout_parametre.add_layout(layout_k_dist)
+
+
+        self.btn_about = QPushButton()
+        self.btn_about.clicked.connect(self.about_klustrWidget)
+        self.layout_parametre.add_widget(self.btn_about)
+
+        
+
+        main_layout.add_widget(self.grb_parametre)
+        self.retranslateUi(klustrDataWidget)
+
+
+
+    @Slot()
+    def retranslateUi(self, klustrDataWidget):
+        klustrDataWidget.set_window_role = "klustrDataWidget"
+        self.grb_parametre.title = "Paramètres Knn"
+        self.label_k.text ="K ="
+        self.label_dist_max.text ="Max dist ="
+        self.label_dist_max_value.text ="0.00"
+        self.label_k_value.text ="0"
+        self.btn_about.text ="A propos"
+
+    @Slot()
+    def update_k_value(self):
+        k_value = self.scoll_bar_k.value
+        self.label_k_value.text = str(k_value)
+
+    @Slot()
+    def update_dist_max_value(self):
+        dist_value = self.scroll_bar_dist.value / 10.0
+        self.label_dist_max_value.text = f"{dist_value:.2f}"
+
+
+    def get_k_value(self):
+        #Retourne la valeur actuelle de K
+        return self.scoll_bar_k.value
+    
+    def get_dist_max_value(self):
+        #Retourne la valeur actuelle de la distance max
+        return self.scroll_bar_dist.value / 10.0
+    
+    @Slot()
+    def about_klustrWidget(self):
+        msgBox = QMessageBox()
+        msgBox.text = ("Ce logiciel est le projet no 1 du cours C52. \r\n Il a été réalisé par :\r\n \u0009 - __étudiant_1__\r\n \u0009- __étudiant_n__ \r\n \r\n "
+        "Il consiste à faire __quelque_chose__ avec les concepts suivants :\r\n \u0009- __concept_1__\r\n \u0009- __concept_n__\r\n \r\n Nos 3 descripteurs de forme sont :\r\n"
+        " - __decripteur_1__\r\n \u0009 - en __unité__ pour le domaine __domaine__\r\n \u0009- correspondant à __courte_description__\r\n - __decripteur_2__\r\n \u0009"
+        " - en __unité__ pour le domaine __domaine__\r\n \u0009- correspondant à __courte_description__\r\n - __decripteur_3__\r\n \u0009- en __unité__ pour le domaine __domaine__"
+        "\r\n \u0009- correspondant à __courte_description__\r\n \r\n Plus précisément, ce laboratoire permet de mettre en pratique les notions de :\r\n"
+        "\u0009 - __notion_1__\r\n \u0009- __notion_n__\r\n \r\n Un effort d'abstraction a été fait pour ces points :\r\n \u0009- __point_1__\r\n \u0009- __point_n__"
+        "\r\n \r\nFinalement, l’ensemble de données le plus complexe que nous avons été capable de résoudre est\r\n :\r\n - __nom_de_l_ensemble_de_données__")
+        msgBox.exec()
+
+
+
+
+class klustRSingleTest(QWidget):
+    def __init__(self, klustr_dao,klustr_dataset_widget=None , parent=None):
+        
+        super().__init__(parent)
+        self.klustr_dao = klustr_dao
+        self.klustr_dataset_widget = klustr_dataset_widget
+
+
+    @Slot()
+    def setupUi(self, klustrDataWidget):
+        main_layout = QVBoxLayout(self)
+
+        self.grb_simple_test = QGroupBox("Test simple")
+        self.layout_simple_test = QVBoxLayout(self.grb_simple_test)
+        self.image_combobox_model = QStandardItemModel()
+        self.cmb_image = QComboBox()
+        self.cmb_image.set_model(self.image_combobox_model)
+        self.cmb_image.currentIndexChanged.connect(self.update_image_display)
+        self.layout_simple_test.add_widget(self.cmb_image)
+
+
+        container_widget = QWidget()
+        self.view_label_image = QLabel(container_widget)
+        self.view_label_image.set_fixed_height(150)
+        self.view_label_image.style_sheet = (u"background-color : #313D4A; padding : 10px 10px 10px 10px;")
+        self.view_label_image.alignment = Qt.AlignCenter
+        self.view_label_image.scaled_contents = False
+        self.layout_simple_test.add_widget(self.view_label_image)
+
+
+
+        self.btn_classify = QPushButton()
+        self.btn_classify.clicked.connect(self.classify_current_image)
+        self.layout_simple_test.add_widget(self.btn_classify)
+
+        self.label_classified = QLabel()
+        self.label_classified.alignment = (Qt.AlignmentFlag.AlignCenter)
+        self.layout_simple_test.add_widget(self.label_classified)
+        
+        main_layout.add_widget(self.grb_simple_test)
+
+        self.retranslateUi(klustrDataWidget)
         self.update_images_from_dataset()
+        
+
+
+    
 
     @Slot()
     def update_images_from_dataset(self):
@@ -804,13 +998,16 @@ class UiKlustr3DDataWidget(QWidget):
         if not hasattr(self, 'cmb_image'):
             return
 
+        if self.klustr_dataset_widget is None:
+            return
+
         # Bloquer les signaux pendant la mise à jour
         self.cmb_image.block_signals = True
 
         # Vider le modèle
         self.image_combobox_model.clear()
 
-        selected_item = self.cmb_dataset.get_selected_dataset_item()
+        selected_item = self.klustr_dataset_widget.get_selected_dataset_item()
 
         if selected_item is None:
             self.cmb_image.block_signals = False
@@ -924,72 +1121,17 @@ class UiKlustr3DDataWidget(QWidget):
             self.view_label_image.clear()
             self.view_label_image.text = "Image non disponible"
 
-
-
-
     
-    
-    @Slot()
-    def about_klustrWidget(self):
-        msgBox = QMessageBox()
-        msgBox.text = ("Ce logiciel est le projet no 1 du cours C52. \r\n Il a été réalisé par :\r\n \u0009 - __étudiant_1__\r\n \u0009- __étudiant_n__ \r\n \r\n "
-        "Il consiste à faire __quelque_chose__ avec les concepts suivants :\r\n \u0009- __concept_1__\r\n \u0009- __concept_n__\r\n \r\n Nos 3 descripteurs de forme sont :\r\n"
-        " - __decripteur_1__\r\n \u0009 - en __unité__ pour le domaine __domaine__\r\n \u0009- correspondant à __courte_description__\r\n - __decripteur_2__\r\n \u0009"
-        " - en __unité__ pour le domaine __domaine__\r\n \u0009- correspondant à __courte_description__\r\n - __decripteur_3__\r\n \u0009- en __unité__ pour le domaine __domaine__"
-        "\r\n \u0009- correspondant à __courte_description__\r\n \r\n Plus précisément, ce laboratoire permet de mettre en pratique les notions de :\r\n"
-        "\u0009 - __notion_1__\r\n \u0009- __notion_n__\r\n \r\n Un effort d'abstraction a été fait pour ces points :\r\n \u0009- __point_1__\r\n \u0009- __point_n__"
-        "\r\n \r\nFinalement, l’ensemble de données le plus complexe que nous avons été capable de résoudre est\r\n :\r\n - __nom_de_l_ensemble_de_données__")
-        msgBox.exec()
     # fabrication du UI
     @Slot()
     def retranslateUi(self, klustrDataWidget):
         klustrDataWidget.set_window_role = "klustrDataWidget"
-        self.grbDataset.title = "Dataset"
-        self.grbIncluded.title = "Inclut dans Dataset"
-        self.label_category.text = "Category count:"
-        self.label_training.text = "Training image count:"
-        self.label_test.text = "Test image count:"
-        self.label_total_image.text ="Total image count:"
-        self.label_category_count.text ="0"
-        self.label_training_count.text ="0"
-        self.label_test_count.text ="0"
-        self.label_total_count.text ="0"
-        self.grbTransformation.title = "Transformation"
-        self.label_translated.text ="Translated:"
-        self.label_rotated.text ="Rotated:"
-        self.label_scaled.text ="Scaled:"
-        self.label_translated_value.text ="false"
-        self.label_rotated_value.text ="false"
-        self.label_scaled_value.text ="false"
         self.grb_simple_test.title = "Teste simple"
         self.view_label_image.text =("")
         self.btn_classify.text ="Classifier"
         self.label_classified.text ="non-classifié"
-        self.grb_parametre.title = "Paramètres Knn"
-        self.label_k.text ="K ="
-        self.label_dist_max.text ="Max dist ="
-        self.label_dist_max_value.text ="0.00"
-        self.label_k_value.text ="0"
-        self.btn_about.text ="A propos"
 
-    @Slot()
-    def update_k_value(self):
-        k_value = self.scoll_bar_k.value
-        self.label_k_value.text = str(k_value)
-
-    @Slot()
-    def update_dist_max_value(self):
-        dist_value = self.scroll_bar_dist.value / 10.0
-        self.label_dist_max_value.text = f"{dist_value:.2f}"
-
-
-    def get_k_value(self):
-        #Retourne la valeur actuelle de K
-        return self.scoll_bar_k.value
     
-    def get_dist_max_value(self):
-        #Retourne la valeur actuelle de la distance max
-        return self.scroll_bar_dist.value / 10.0
     
     def get_current_image_info(self):
         #Retourne les informations de l'image actuellement sélectionnée
@@ -1027,10 +1169,6 @@ class UiKlustr3DDataWidget(QWidget):
         image_array = QtNpConvert.np_from_qimage(qimage)
         
         return image_array
-
-    
-
-
 
 
     @Slot()
@@ -1082,23 +1220,35 @@ class KnnImageClassificationWidget(QWidget):
         # Créer le widget de contrôle (l'interface UI)
         self.control_widget = QWidget()
         # J'importe UiklustrDataWidget depuis ton fichier principal
+        self.layout_control = QVBoxLayout(self.control_widget)
+
+
         
-        self.ui = UiKlustr3DDataWidget(klustr_dao)
-        self.ui.setupUi(self.control_widget)
+        self.uiDataset = klustRDataset(klustr_dao)
+        self.uiSingleTest = klustRSingleTest(klustr_dao, self.uiDataset)
+        self.uiParameter = klustRParameter()
+        self.layout_control.add_widget(self.uiDataset)
+        self.layout_control.add_widget(self.uiSingleTest)
+        self.layout_control.add_widget(self.uiParameter)
+        
+        self.uiDataset.setupUi(self.control_widget)
+        self.uiSingleTest.setupUi(self.control_widget)
+        self.uiParameter.setupUi(self.control_widget)
         #self.viewer_3d.add_serie
-        
-        
-        
+        self.uiDataset.cmb_dataset.currentIndexChanged.connect(self.uiSingleTest.update_images_from_dataset)
+
+
         # Fixer la largeur du panneau de contrôle
-        self.control_widget.set_fixed_width(390)
+        #self.control_widget.set_fixed_width(390)
+
         
         # Layout horizontal : contrôles à gauche, viewer 3D à droite
         layout = QHBoxLayout(self)
-        layout.add_widget(self.control_widget)
-        layout.add_widget(self.viewer_3d)
+        layout.add_widget(self.control_widget,1)
+        layout.add_widget(self.viewer_3d , 2)
         layout.contents_margins = (QMargins(0, 0, 0, 0))
 
-        self.ui.btn_classify.clicked.connect(self.methode)
+        self.uiSingleTest.btn_classify.clicked.connect(self.methode)
     
     @Slot()
     def methode(self):
@@ -1116,8 +1266,8 @@ def main():
     app = QApplication(sys.argv)
 
     #A changer selon votre configuration d'ordinateur
-    #credential = PostgreSQLCredential(password='Yoshi9603')
-    credential = PostgreSQLCredential(password='AAAaaa123')
+    credential = PostgreSQLCredential(password='Yoshi9603')
+    #credential = PostgreSQLCredential(password='AAAaaa123')
     # credential = PostgreSQLCredential(password='123')
 
 

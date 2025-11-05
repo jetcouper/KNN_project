@@ -4,7 +4,6 @@ import os
 from types import NoneType
 from enum import Enum, auto
 from random import uniform, randint, choice
-from klustr_main import UiKlustr3DDataWidget
 import numpy as np
 
 
