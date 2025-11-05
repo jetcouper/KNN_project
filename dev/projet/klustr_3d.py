@@ -529,7 +529,7 @@ class QScatter3dViewer(QWidget):
         
         # Configuration du tool tip
         self.tool_tip = QScatter3dViewer.__tool_tip
-
+    
     # override
     def event_filter(self, watched, event):
         """
