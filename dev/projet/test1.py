@@ -1,12 +1,27 @@
 import numpy as np
 
-class KNN:
+from db_credential import PostgreSQLCredential
+from klustr_dao import PostgreSQLKlustRDAO
+
+class test1:
     def __init__(self, image):
         self.image = image
         self.k = 0  # Number of neighbors
         self.X_train = None
         self.y_train = None
         self.z_train = None
+        
+        credential = PostgreSQLCredential(password='AAAaaa123')
+        dao = PostgreSQLKlustRDAO(credential)
+        
+        self.liste_matrices = dao.all_images_to_np(10)
+        print(f'taille de la liste de matrices : {len(self.liste_matrices)}')
+        
+        if self.liste_matrices:
+            print("Forme de la première image :", self.liste_matrices[0].shape)
+           
+        else:
+            print("Aucune image")
 
     def fit(self, X, Y, Z):
         self.X_train = X
@@ -148,4 +163,30 @@ class KNN:
     print(f'aire externe carré: {get_area(image_test2, 0)}')
     print(f'perimetre carré {get_perimeter(image_test2)}')
 
+    # --- exécution du test
+if __name__ == "__main__":
     
+    image_test = [  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 
+                    [0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+                    [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+                    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+                    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+                    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+                    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+                    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+                    [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+                    [0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
+                    [0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] ]
+    
+    test1(image_test)

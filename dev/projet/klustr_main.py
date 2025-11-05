@@ -161,8 +161,16 @@ class KlustRImageItem(QStandardItem):
         img = QtNpConvert.qimage_from_png(image)
         self._image = QIcon() if img.is_null() else img
 
+        # pour obtenir matrice des img
+        self._np_image = None
+        if not img.is_null():
+            self._np_image = QtNpConvert.np_from_qimage(img)
+            
         super().__init__(self._thumbnail_icon, self._name)
 
+    @property #ajout comme property
+    def np_image(self):
+        return self._np_image
     @property
     def label_id(self):
         return self._label_id
@@ -221,7 +229,9 @@ class KlustRImageModel(QStandardItemModel):
     def update_from_dataset(self, klustr_dao, dataset_name, label_id, training_image):
         self._update(klustr_dao.image_from_dataset_label(dataset_name, label_id, training_image))
 
-
+    def load_all_np_images(self):
+        pass
+        
 class ColoredWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -535,7 +545,16 @@ class KlustRDataSourceViewWidget(QWidget):
         if selected:
             self.image_info_widget.update_info(self.image_model.item_from_index(selected.indexes()[0]))
 
-
+    # def get_all_np_images(self):
+    #    items = self.image_model.find_items('*')
+    #    all_matrices = []
+       
+    #    for item in items:
+    #        if hasattr(item, "np_image"):
+    #            if item.np_image != None:
+    #                all_matrices.append(item.np_image)
+       
+    #    print(f'{len(all_matrices)}')
 
 
 
@@ -545,8 +564,8 @@ def main():
     app = QApplication(sys.argv)
 
     #A changer selon votre configuration d'ordinateur
-    credential = PostgreSQLCredential(password='Yoshi9603')
-    #credential = PostgreSQLCredential(password='AAAaaa123')
+    #credential = PostgreSQLCredential(password='Yoshi9603')
+    credential = PostgreSQLCredential(password='AAAaaa123')
     # credential = PostgreSQLCredential(password='123')
 
 
@@ -569,11 +588,13 @@ def main():
     # Afficher la fenêtre principale
     tab_widget.resize(1200, 800)
     tab_widget.show()
-    #source_data_widget.show()
-
+    source_data_widget.show()
+    
+    
+    #ajouté pour empêcher la fermeture 
     sys.exit(app.exec())
-
 
 if __name__ == '__main__':
     main()
     
+  
