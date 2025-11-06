@@ -1241,7 +1241,7 @@ class klustRSingleTest(QWidget):
         perimeter = Axe1.get_perimeter(image_array,0)
         print(f'perimetre = {perimeter}')
         indice_complexite = Axe1.calcul_indice_complexite(image_array,0)
-        print(f'{indice_complexite}')
+        print(f'indice de complexité: {indice_complexite}')
 
         # Ajouter vos séries de points via le KNN effectué
         #return KNN
