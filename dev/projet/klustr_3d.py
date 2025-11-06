@@ -4,7 +4,6 @@ import os
 from types import NoneType
 from enum import Enum, auto
 from random import uniform, randint, choice
-from klustr_main import Ui_klustrDataWidget
 import numpy as np
 
 
@@ -530,7 +529,7 @@ class QScatter3dViewer(QWidget):
         
         # Configuration du tool tip
         self.tool_tip = QScatter3dViewer.__tool_tip
-
+    
     # override
     def event_filter(self, watched, event):
         """
@@ -786,37 +785,3 @@ class QScatter3dViewer(QWidget):
 
 
 
-class KnnImageClassificationWidget(QWidget):
-    """Widget pour la classification KNN avec visualisation 3D"""
-    
-    def __init__(self, klustr_dao, parent=None):
-        super().__init__(parent)
-        
-        self.klustr_dao = klustr_dao
-        
-        # Créer le viewer 3D avec rotation automatique
-        self.viewer_3d = QScatter3dViewer(auto_rotate=True)
-        self.viewer_3d.title = "KNN Classification 3D"
-        self.viewer_3d.axis_x.title = "Axis 1"
-        self.viewer_3d.axis_y.title = "Axis 2"
-        self.viewer_3d.axis_z.title = "Axis 3"
-        
-        # Créer le widget de contrôle (l'interface UI)
-        self.control_widget = QWidget()
-        # Tu devras importer Ui_klustrDataWidget depuis ton fichier principal
-        
-        self.ui = Ui_klustrDataWidget()
-        self.ui.setupUi(self.control_widget)
-        
-        # Fixer la largeur du panneau de contrôle
-        self.control_widget.set_fixed_width(390)
-        
-        # Layout horizontal : contrôles à gauche, viewer 3D à droite
-        layout = QHBoxLayout(self)
-        layout.add_widget(self.control_widget)
-        layout.add_widget(self.viewer_3d)
-        layout.contents_margins = (QMargins(0, 0, 0, 0))
-    
-    def add_classification_data(self, data3d, color, title=''):
-        """Ajoute des données de classification au viewer 3D"""
-        self.viewer_3d.add_serie(data3d, color, title)
