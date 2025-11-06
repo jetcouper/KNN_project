@@ -1,46 +1,48 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from math import pi
-# poids - sucre - eau
-data = [
+import math
+from typing import Tuple, Optional
+# # poids - sucre - eau
+# data = [
 
-    # Pommes
-    [
-        [180, 10, 84],
-        [170, 11, 85],
-        [160, 9, 83],
-        [175, 10.5, 84],
-        [165, 9.5, 85],
-    ],
-    # Bananes
-    [
-        [120, 20, 74],
-        [130, 21, 73],
-        [125, 19.5, 75],
-        [135, 22, 72],
-        [128, 20.5, 74],
-    ],
-    # Pommes de terre
-    [
-        [200, 1, 79],
-        [210, 0.8, 78],
-        [190, 1.2, 80],
-        [205, 1, 79],
-        [195, 0.9, 81]
-    ]
-]
+#     # Pommes
+#     [
+#         [180, 10, 84],
+#         [170, 11, 85],
+#         [160, 9, 83],
+#         [175, 10.5, 84],
+#         [165, 9.5, 85],
+#     ],
+#     # Bananes
+#     [
+#         [120, 20, 74],
+#         [130, 21, 73],
+#         [125, 19.5, 75],
+#         [135, 22, 72],
+#         [128, 20.5, 74],
+#     ],
+#     # Pommes de terre
+#     [
+#         [200, 1, 79],
+#         [210, 0.8, 78],
+#         [190, 1.2, 80],
+#         [205, 1, 79],
+#         [195, 0.9, 81]
+#     ]
+# ]
 
-label = [
+# label = [
     
-    # Pommes
-    ["pomme", "pomme", "pomme", "pomme", "pomme"],
+#     # Pommes
+#     ["pomme", "pomme", "pomme", "pomme", "pomme"],
 
-    # Bananes
-    ["banane", "banane", "banane", "banane", "banane"],
+#     # Bananes
+#     ["banane", "banane", "banane", "banane", "banane"],
 
-    # Pommes de terre
-    ["patate", "patate", "patate", "patate", "patate"]
-]
+#     # Pommes de terre
+#     ["patate", "patate", "patate", "patate", "patate"]
+# ]
 
 class KNNNumpy():
     def __init__(self, k , dist, all_images, image_actuel):
@@ -52,7 +54,7 @@ class KNNNumpy():
         self.__image_actuel = image_actuel
 
         self_axe1 = Axe1.calcul_indice_complexite(self.__image_actuel,0)
-
+        self.axe2 = Axe2.analyze_image(self.__image_actuel)
 
 
 
@@ -247,7 +249,10 @@ class Axe2:
 
 
 
+class Axe3:
+    None
 
+    
 
 #if "__main__" == __name__:
 #    

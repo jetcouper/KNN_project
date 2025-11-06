@@ -1261,7 +1261,8 @@ class klustRSingleTest(QWidget):
             dist_max = 0.5
 
         self.knn = KNNNumpy(k,dist_max, all_images_np,image_array_single)
-        
+
+
         #    image = [150, 0.3, 72]
         #
         #    # knn_n.add_point([1501, 0.3, 72], "pomme")
