@@ -143,6 +143,9 @@ class PostgreSQLKlustRDAO(KlustRDAO):
                         f'''SELECT * FROM klustr.select_image_from_data_set(%s, %s);''',
                         (dataset_name, training_image))
     
+    def all_images(self):
+        return self._execute_simple_query("SELECT * FROM klustr.image;")
+    
     # pour convertir directement les images du data set en np array 
     def all_images_to_np(self, label_id=None, limit=None):
         

@@ -1,6 +1,7 @@
 import sys
 import klustr_3d as Animation
 from test import test1
+from KNN import KNNNumpy
 import numpy as np
 # -----------------------------------------------------------------------------
 import PySide6 
@@ -1210,11 +1211,46 @@ class klustRSingleTest(QWidget):
     @Slot()
     def classify_current_image(self, k=None, dist_max=None):
         """Classifie l'image actuelle avec KNN"""
-        #image_array = self.get_current_image_as_array_simple()
+        all_images = self.klustr_dao.all_images()  # doit être une fonction du DAO
+        all_images_np = []
+        if not all_images:
+            print("Aucune image trouvée dans la base de données.")
+            return None
 
-        image_array= self.get_current_image_as_array()
+        for row in all_images:
+            # Supposons que la première colonne contient les bytes de l'image
+            img_bytes = row[3]
+            img_name = row[1]
 
-        if image_array is None:
+            if img_bytes is None:
+                continue
+
+            try:
+                qimage = QtNpConvert.qimage_from_png(img_bytes)
+
+                # if qimage.isNull():
+                #     print("Impossible de décoder l'image (QImage null).")
+                #     continue
+
+                image_array = (QtNpConvert.np_from_qimage(qimage), img_name)
+
+                all_images_np.append(image_array)
+
+            except Exception as e:
+                print(f"Erreur lors du décodage d'une image : {e}")
+                continue
+
+        if not all_images_np:
+            print("Aucune image valide décodée.")
+            return None
+
+        all_images_np = np.array(all_images_np, dtype=object)
+        
+        
+        
+        image_array_single= self.get_current_image_as_array()
+
+        if image_array_single is None:
             self.label_classified.text = "Aucune image"
             return
         
@@ -1224,8 +1260,23 @@ class klustRSingleTest(QWidget):
         if dist_max is None:
             dist_max = 0.5
 
+        self.knn = KNNNumpy(k,dist_max, all_images_np,image_array_single)
         
-        
+        #    image = [150, 0.3, 72]
+        #
+        #    # knn_n.add_point([1501, 0.3, 72], "pomme")
+        #    # knn_n.add_point([1502, 0.3, 72], "patate")
+        #    # knn_n.add_point([1503, 0.3, 72], "banane")
+        #    # knn_n.add_point([1504, 0.3, 72], "pomme")
+        #    # knn_n.add_point([1504, 0.3, 72], "pomme")
+        #    # knn_n.add_point([1504, 0.3, 72], "pomme")
+        #    knn_n.add_points(np.array([[150, 0.3, 72], [150, 0.3, 72], [200, 0.8, 50]]), np.array(["pomme", "pomme", "banane"]))
+        #
+        #    knn_n.k = 2
+        #    resultat = knn_n.predict(image)
+
+
+
         print(f"Image shape: {image_array.shape}")
         print(f"Classification avec K={k} et distance_max={dist_max}")
         
