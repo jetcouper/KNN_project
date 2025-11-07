@@ -1542,8 +1542,8 @@ def main():
     app = QApplication(sys.argv)
 
     #A changer selon votre configuration d'ordinateur
-    credential = PostgreSQLCredential(password='Yoshi9603')
-    #credential = PostgreSQLCredential(password='AAAaaa123')
+    #credential = PostgreSQLCredential(password='Yoshi9603')
+    credential = PostgreSQLCredential(password='AAAaaa123')
     # credential = PostgreSQLCredential(password='123')
 
 
