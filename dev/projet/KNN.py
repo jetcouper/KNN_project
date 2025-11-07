@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from math import pi
 import math
 from typing import Tuple, Optional
@@ -53,10 +53,21 @@ class KNNNumpy():
         
         self.__image_actuel = image_actuel
 
-        self_axe1 = Axe1.calcul_indice_complexite(self.__image_actuel,0)
-        self.axe2 = Axe2.analyze_image(self.__image_actuel)
+        self.axe1 = Axe1.calcul_indice_complexite(self.__image_actuel,0)
+        centroid, farthest, percentage = Axe2.analyze_image(self.__image_actuel)
+        self.axe2 = percentage
+
+        self.axe3 = Axe3.count_nb_transitions_along__negative_circle(
+            self.__image_actuel, 
+            center=(int(centroid[1]), int(centroid[0])),  # Le centroid calculé
+            thickness=3
+        )
+        self.vecteur_3d_image_simple = np.array([self.axe1, self.axe2, self.axe3])
 
 
+    def predict_image_actuelle(self):
+        #Prédit la classe de l'image actuelle en utilisant les 3 axes calculés
+        return self.predict(self.vecteur_3d_image_simple)
 
     
     def add_point(self, data, label):
@@ -83,6 +94,9 @@ class KNNNumpy():
     def all_data(self):
         return self.__all_data
     @property
+    def dist_max(self):
+        return self.__dist_max
+    @property
     def all_label(self):
         return self.__all_label
             
@@ -95,13 +109,51 @@ class KNNNumpy():
         
         # ensuite il faut les trier
         k_indices = np.argsort(distances_array)[:self.__k]
-
+        k_distances = distances_array[k_indices]
         k_labels = self.all_label[k_indices]
 
-        # compter celui qui a le plus de fois le meme type
-        u, indices = np.unique(k_labels, return_counts=True)
 
-        return u[np.argmax(indices)]
+        distance_min = k_distances[0]
+        if distance_min > self.__dist_max:
+            return None, distance_min, 0,0
+        
+
+        # compter celui qui a le plus de fois le meme type
+        unique, compte = np.unique(k_labels, return_counts=True)
+
+        max_count = np.max(compte)
+        tied_labels = unique[compte == max_count]
+
+
+        if len(tied_labels) > 1:
+            # Cas d'ex-aequo : calculer la distance moyenne pour chaque classe ex-aequo
+            best_label = None
+            best_avg_distance = float('inf')
+            
+            for label in tied_labels:
+                label_distances = k_distances[k_labels == label]
+                avg_distance = np.mean(label_distances)
+                
+                if avg_distance < best_avg_distance:
+                    best_avg_distance = avg_distance
+                    best_label = label
+            
+            predicted_label = best_label
+            avg_distance = best_avg_distance
+        else:
+            # Cas normal : une seule classe majoritaire
+            predicted_label = unique[np.argmax(compte)]
+            avg_distance = np.mean(k_distances[k_labels == predicted_label])
+        
+        # Calculer un indice de confiance (0 à 1)
+        # Plus la distance est petite par rapport à dist_max, plus la confiance est élevée
+        confiance = max(0, 1 - (avg_distance / self.__dist_max))
+
+
+
+
+
+        return predicted_label, avg_distance, confiance
 
     @property
     def k(self):
@@ -119,7 +171,22 @@ class KNNNumpy():
             return 0
         return len(self.__all_data[0])
 
+    def calculer_vecteur_3d(image):
+        # Axe 1
+        axe1 = Axe1.calcul_indice_complexite(image, 0)
 
+        # Axe 2
+        centroid, farthest, percentage = Axe2.analyze_image(image)
+        axe2 = percentage
+
+        # Axe 3
+        axe3 = Axe3.count_nb_transitions_along__negative_circle(
+            image, 
+            center=(int(centroid[1]), int(centroid[0])),
+            thickness=3
+        )
+
+        return np.array([axe1, axe2, axe3])
 
 
 class Axe1:
@@ -215,7 +282,9 @@ class Axe2:
     @staticmethod
     def farthest_point(image, centroid):
         y_indices, x_indices = np.nonzero(image)
-        distances = np.linalg.norm(np.array([x_indices - centroid[1], y_indices - centroid[0]]), axis=0)
+        distances = np.sqrt((x_indices - centroid[1])**2 + (y_indices - centroid[0])**2)
+
+        #distances = np.linalg.norm(np.array([x_indices - centroid[1], y_indices - centroid[0]]), axis=0)
         max_index = np.argmax(distances)
         return (x_indices[max_index], y_indices[max_index]), distances[max_index]
 
@@ -230,7 +299,7 @@ class Axe2:
         if total_area == 0:
             return 0.0
         
-        return (filled_area / total_area) * 100
+        return (filled_area / total_area)
 
     @staticmethod
     def analyze_image(image):
@@ -241,11 +310,12 @@ class Axe2:
 
     @staticmethod
     def show(img, centroid, farthest_point):
-        plt.imshow(img, cmap='gray')
-        plt.scatter([centroid[0][1]], [centroid[0][0]], color='red', marker='x', s=100, label='Centroid')
-        plt.scatter([farthest_point[1][0]], [farthest_point[1][1]], color='blue', marker='o', s=100, label='Farthest Point')
-        plt.axis('off')  # Optionnel : masque les axes
-        plt.show()
+        # plt.imshow(img, cmap='gray')
+        # plt.scatter([centroid[0][1]], [centroid[0][0]], color='red', marker='x', s=100, label='Centroid')
+        # plt.scatter([farthest_point[1][0]], [farthest_point[1][1]], color='blue', marker='o', s=100, label='Farthest Point')
+        # plt.axis('off')  # Optionnel : masque les axes
+        # plt.show()
+        pass
 
 
 

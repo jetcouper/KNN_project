@@ -1,7 +1,8 @@
 import sys
 import klustr_3d as Animation
 from test import test1
-from KNN import KNNNumpy
+from KNN import KNNNumpy, Axe1, Axe2, Axe3
+
 import numpy as np
 # -----------------------------------------------------------------------------
 import PySide6 
@@ -650,6 +651,7 @@ class KlustRDatasetItem(QStandardItem):
     
 
 class klustRDataset(QWidget):
+    training_data_ready = Signal(dict)
     def __init__(self, klustr_dao ,parent=None):
         super().__init__(parent)
         self.dataset_model = QStandardItemModel()
@@ -666,7 +668,7 @@ class klustRDataset(QWidget):
         self.cmb_dataset = QComboBox()
         self.cmb_dataset.set_model(self.dataset_model)
         self.update_datasets(self.klustr_dao)
-        self.cmb_dataset.currentIndexChanged.connect(self.update_dataset_stats_simple)
+        self.cmb_dataset.currentIndexChanged.connect(self.on_dataset_changed)
         self.layout_dataset.add_widget(self.cmb_dataset)
 
         container_widget = QWidget()
@@ -753,6 +755,129 @@ class klustRDataset(QWidget):
         self.retranslateUi(klustrDataWidget)
 
     @Slot()
+    def on_dataset_changed(self):
+        """Appelé quand le dataset change - met à jour les stats ET calcule les données 3D"""
+        self.update_dataset_stats_simple()
+        self.compute_and_display_training_data()
+
+
+    @Slot()
+    def compute_and_display_training_data(self):
+        """Calcule les vecteurs 3D de toutes les images d'entraînement du dataset sélectionné"""
+        
+        selected_item = self.get_selected_dataset_item()
+        
+        if selected_item is None:
+            print("Aucun dataset sélectionné")
+            return
+        
+        dataset_name = selected_item.name
+        
+        # Récupérer tous les labels du dataset
+        labels = self.klustr_dao.labels_from_dataset(dataset_name)
+        
+        # Préparer les données par label
+        training_image_par_label = {}
+        total_images = 0
+        
+        for label in labels:
+            label_id = label[0]
+            label_name = label[1]
+            
+            # Récupérer les images d'ENTRAÎNEMENT pour ce label
+            training_images = self.klustr_dao.image_from_dataset_label(dataset_name, label_id, True)
+            
+            training_image_par_label[label_name] = []
+            
+            for image_info in training_images:
+                img_bytes = image_info[6]
+                
+                if img_bytes is None:
+                    continue
+                
+                try:
+                    qimage = QtNpConvert.qimage_from_png(img_bytes)
+                    
+                    if qimage.is_null():
+                        continue
+                    
+                    image_array = QtNpConvert.np_from_qimage(qimage)
+                    
+                    # Calculer le vecteur 3D avec VOS méthodes
+                    vecteur_3d = self.calculate_3d_descriptor(image_array)
+                    
+                    training_image_par_label[label_name].append(vecteur_3d)
+                    total_images += 1
+                
+                except Exception as e:
+                    print(f"Erreur lors du calcul du descripteur : {e}")
+                    import traceback
+                    traceback.print_exc()
+                    continue
+        
+        # Émettre le signal avec les données calculées
+        print(f"Calcul terminé : {total_images} images traitées")
+        for label, vectors in training_image_par_label.items():
+            print(f"   - {label}: {len(vectors)} images")
+        
+        self.training_data_ready.emit(training_image_par_label)
+
+    def calculate_3d_descriptor(self, image_array):
+        """
+        Calcule le vecteur 3D en utilisant VOS 3 axes :
+        - Axe 1 : Indice de complexité (périmètre)
+        - Axe 2 : Pourcentage de remplissage
+        - Axe 3 : Nombre de transitions
+        """
+        # try:
+            # Axe 1 : Indice de complexité
+        axe1 = Axe1.calcul_indice_complexite(image_array, 0)
+        
+        # Axe 2 : Analyse du remplissage
+        centroid, farthest, percentage = Axe2.analyze_image(image_array)
+        axe2 = percentage
+        
+        # Axe 3 : Transitions sur un cercle
+        axe3 = Axe3.count_nb_transitions_along__negative_circle(
+            image_array, 
+            center=(int(centroid[1]), int(centroid[0])),  # Centroid calculé
+            thickness=3
+        )
+        
+        return [axe1, axe2, axe3]
+            
+        # except Exception as e:
+        #     print(f"Erreur calcul descripteur : {e}")
+        #     import traceback
+        #     traceback.print_exc()
+        #     return [0, 0, 0]
+
+    def get_training_images_from_dataset(self):
+        """Retourne toutes les images d'ENTRAÎNEMENT du dataset sélectionné"""
+        
+        selected_item = self.get_selected_dataset_item()
+        if selected_item is None:
+            return []
+        
+        dataset_name = selected_item.name
+        all_training_images = []
+        
+        # Récupérer les labels du dataset
+        labels = self.klustr_dao.labels_from_dataset(dataset_name)
+        
+        for label in labels:
+            label_id = label[0]
+            label_name = label[1]
+            
+            # Récupérer UNIQUEMENT les images d'ENTRAÎNEMENT (training=True)
+            training_images = self.klustr_dao.image_from_dataset_label(dataset_name, label_id, True)
+            
+            for image_info in training_images:
+                all_training_images.append((image_info, label_name))
+        
+        return all_training_images
+
+    @Slot()
     def retranslateUi(self, klustrDataWidget):
         klustrDataWidget.set_window_role = "klustrDataWidget"
         self.grbDataset.title = "Dataset"
@@ -775,13 +900,16 @@ class klustRDataset(QWidget):
 
         self.update_dataset_stats_simple()
 
+
+    
+
     @Slot()
     def update_datasets(self, klustr_dao):
         self.dataset_model.clear()
         
         # Ajouter "Tous les datasets"
-        item = KlustRDatasetItem(-1, 'Toutes les images')
-        self.dataset_model.append_row(item)
+        #item = KlustRDatasetItem(-1, 'Toutes les images')
+        #self.dataset_model.append_row(item)
         
         # Ajouter les datasets
         for dataset in klustr_dao.available_datasets:
@@ -828,39 +956,26 @@ class klustRDataset(QWidget):
             if selected_item is None:
                 return
 
-            if selected_item.id == -1:
-                # "Toutes les images"
-                total_stats = self.klustr_dao.total_label_image_count
-                if total_stats:
-                    self.label_category_count.text = str(total_stats[0][0])
-                    self.label_total_count.text = str(total_stats[0][1])
-                    self.label_training_count.text = "-"
-                    self.label_test_count.text = "-"
-                    self.label_translated_value.text = "mixte"
-                    self.label_rotated_value.text = "mixte"
-                    self.label_scaled_value.text = "mixte"
-            else:
+            
                 # Récupérer les informations du dataset directement
-                for dataset in self.klustr_dao.available_datasets:
-                    if dataset[0] == selected_item.id:
-                        # dataset[0] = id
-                        # dataset[2] = translated
-                        # dataset[3] = rotated
-                        # dataset[4] = scaled
-                        # dataset[5] = label_count
-                        # dataset[6] = training_image_count
-                        # dataset[7] = test_image_count
-                        # dataset[8] = total_image_count
-
-                        self.label_category_count.text = str(dataset[5])
-                        self.label_training_count.text = str(dataset[6])
-                        self.label_test_count.text = str(dataset[7])
-                        self.label_total_count.text = str(dataset[8])
-
-                        self.label_translated_value.text = "true" if dataset[2] else "false"
-                        self.label_rotated_value.text = "true" if dataset[3] else "false"
-                        self.label_scaled_value.text = "true" if dataset[4] else "false"
-                        break
+            for dataset in self.klustr_dao.available_datasets:
+                if dataset[0] == selected_item.id:
+                    # dataset[0] = id
+                    # dataset[2] = translated
+                    # dataset[3] = rotated
+                    # dataset[4] = scaled
+                    # dataset[5] = label_count
+                    # dataset[6] = training_image_count
+                    # dataset[7] = test_image_count
+                    # dataset[8] = total_image_count
+                    self.label_category_count.text = str(dataset[5])
+                    self.label_training_count.text = str(dataset[6])
+                    self.label_test_count.text = str(dataset[7])
+                    self.label_total_count.text = str(dataset[8])
+                    self.label_translated_value.text = "true" if dataset[2] else "false"
+                    self.label_rotated_value.text = "true" if dataset[3] else "false"
+                    self.label_scaled_value.text = "true" if dataset[4] else "false"
+                    break
         finally:
             self._updating_stats = False
 
@@ -1002,7 +1117,7 @@ class klustRSingleTest(QWidget):
 
 
         self.btn_classify = QPushButton()
-        self.btn_classify.clicked.connect(self.classify_current_image)
+        #self.btn_classify.clicked.connect(self.classify_current_image)
         self.layout_simple_test.add_widget(self.btn_classify)
 
         self.label_classified = QLabel()
@@ -1047,63 +1162,62 @@ class klustRSingleTest(QWidget):
         if selected_item is None:
             return
         
-        if selected_item.id == -1:
-            # Toutes les images disponibles
-            all_labels = self.klustr_dao.available_labels
-
-            for label in all_labels:
-                label_id = label[0]
-                label_name = label[1]
-
-                # Récupérer toutes les images pour ce label
-                images = self.klustr_dao.image_from_label(label_id)
-
-                for image_info in images:
-                    image_name = f"{label_name} - {image_info[3]}"
-
-                    item = QStandardItem(image_name)
-                    item.set_data(image_info, Qt.UserRole) 
-
-                    self.image_combobox_model.append_row(item)
-
-        else:
-            # Dataset spécifique sélectionné
-            dataset_name = selected_item.name
-
-            # Récupérer les labels du dataset
-            labels = self.klustr_dao.labels_from_dataset(dataset_name)
-
-            for label in labels:
-                label_id = label[0]
-                label_name = label[1]
-
-                # Récupérer les images d'entraînement
-                training_images = self.klustr_dao.image_from_dataset_label(dataset_name, label_id, True)
-                for image_info in training_images:
-                    image_name = f"{label_name} - Training - {image_info[3]}"
-
-                    item = QStandardItem(image_name)
-                    item.set_data(image_info, Qt.UserRole)
-
-                    self.image_combobox_model.append_row(item)
-
-                # Récupérer les images de test
-                test_images = self.klustr_dao.image_from_dataset_label(dataset_name, label_id, False)
-                for image_info in test_images:
-                    image_name = f"{label_name} - Test - {image_info[3]}"
-
-                    item = QStandardItem(image_name)
-                    item.set_data(image_info, Qt.UserRole) 
-
-                    self.image_combobox_model.append_row(item)
+        
+        # Créer un nouveau modèle propre
+        self.image_combobox_model = QStandardItemModel()
+        self.cmb_image.set_model(self.image_combobox_model)
 
         
+        # Dataset spécifique sélectionné
+        dataset_name = selected_item.name
+        # Récupérer les labels du dataset
+        labels = self.klustr_dao.labels_from_dataset(dataset_name)
+        for label in labels:
+            label_id = label[0]
+            label_name = label[1]
+
+            # Récupérer UNIQUEMENT les images de TEST (training=False)
+            test_images = self.klustr_dao.image_from_dataset_label(dataset_name, label_id, False)
+            for image_info in test_images:
+                image_name = f"{label_name} - Test - {image_info[3]}"
+                item = QStandardItem(image_name)
+                item.set_data(image_info, Qt.UserRole) 
+                self.image_combobox_model.append_row(item)
+
         self.cmb_image.currentIndexChanged.connect(self.update_image_display)
-        # Sélectionner la première image si disponible
+
         if self.image_combobox_model.row_count() > 0:
             self.cmb_image.current_index = 0
-            # Forcer l'affichage de la première image
             self.update_image_display()
+
+
+    def get_training_images_from_dataset(self):
+        """Retourne toutes les images d'ENTRAÎNEMENT du dataset sélectionné"""
+
+        if self.klustr_dataset_widget is None:
+            return []
+
+        selected_item = self.klustr_dataset_widget.get_selected_dataset_item()
+        if selected_item is None:
+            return []
+
+        dataset_name = selected_item.name
+        all_training_images = []
+
+        # Récupérer les labels du dataset
+        labels = self.klustr_dao.labels_from_dataset(dataset_name)
+
+        for label in labels:
+            label_id = label[0]
+            label_name = label[1]
+
+            # Récupérer UNIQUEMENT les images d'ENTRAÎNEMENT (training=True)
+            training_images = self.klustr_dao.image_from_dataset_label(dataset_name, label_id, True)
+
+            for image_info in training_images:
+                all_training_images.append((image_info, label_name))
+
+        return all_training_images
 
     @Slot()
     def update_image_display(self):
@@ -1210,49 +1324,48 @@ class klustRSingleTest(QWidget):
 
     @Slot()
     def classify_current_image(self, k=None, dist_max=None):
-        """Classifie l'image actuelle avec KNN"""
-        all_images = self.klustr_dao.all_images()  # doit être une fonction du DAO
-        all_images_np = []
-        if not all_images:
-            print("Aucune image trouvée dans la base de données.")
+        
+        all_training_images = self.get_training_images_from_dataset()
+    
+        if not all_training_images:
+            print("Aucune image d'entraînement trouvée dans le dataset.")
+            self.label_classified.text = "Pas de données d'entraînement"
             return None
-
-        for row in all_images:
-            # Supposons que la première colonne contient les bytes de l'image
-            img_bytes = row[3]
-            img_name = row[1]
-
+        
+        # Préparer les images d'entraînement pour le KNN
+        all_images_preparer = []
+        
+        for image_info, label_name in all_training_images:
+            img_bytes = image_info[6]  # L'image complète
+            
             if img_bytes is None:
                 continue
-
+             
             try:
                 qimage = QtNpConvert.qimage_from_png(img_bytes)
-
-                # if qimage.isNull():
-                #     print("Impossible de décoder l'image (QImage null).")
-                #     continue
-
-                image_array = (QtNpConvert.np_from_qimage(qimage), img_name)
-
-                all_images_np.append(image_array)
-
+                
+                if qimage.is_null():
+                    continue
+                 
+                image_array = QtNpConvert.np_from_qimage(qimage)
+                all_images_preparer.append((image_array, label_name))
+            
             except Exception as e:
-                print(f"Erreur lors du décodage d'une image : {e}")
+                print(f"Erreur lors du décodage d'une image d'entraînement : {e}")
                 continue
-
-        if not all_images_np:
-            print("Aucune image valide décodée.")
+             
+        if not all_images_preparer:
+            print("Aucune image d'entraînement valide décodée.")
+            self.label_classified.text = "Erreur de préparation"
+            return None
+        
+        # Récupérer l'image de TEST sélectionnée dans cmb_test
+        image_a_classifier = self.get_current_image_as_array()
+        
+        if image_a_classifier is None:
+            self.label_classified.text = "Aucune image de test sélectionnée"
             return None
 
-        all_images_np = np.array(all_images_np, dtype=object)
-        
-        
-        
-        image_array_single= self.get_current_image_as_array()
-
-        if image_array_single is None:
-            self.label_classified.text = "Aucune image"
-            return
         
         # Récupérer les paramètres
         if k is None:
@@ -1260,7 +1373,12 @@ class klustRSingleTest(QWidget):
         if dist_max is None:
             dist_max = 0.5
 
-        self.knn = KNNNumpy(k,dist_max, all_images_np,image_array_single)
+        self.knn = KNNNumpy(k,dist_max, all_images_preparer,image_a_classifier)
+        #label_predicted, distance_avg, confiance = self.knn.predict_image_actuelle()
+        return self.knn.vecteur_3d_image_simple
+
+
+
 
 
         #    image = [150, 0.3, 72]
@@ -1278,22 +1396,22 @@ class klustRSingleTest(QWidget):
 
 
 
-        print(f"Image shape: {image_array.shape}")
-        print(f"Classification avec K={k} et distance_max={dist_max}")
+        # print(f"Image shape: {image_array.shape}")
+        # print(f"Classification avec K={k} et distance_max={dist_max}")
         
         # Appeler votre algorithme KNN
         # predicted_label = your_knn_classifier.classify(image_array, k=k, dist_max=dist_max)
         
         # Pour tester, afficher des infos
-        self.label_classified.text = f"Shape: {image_array.shape}"
+        # self.label_classified.text = f"Shape: {image_array.shape}"
 
-        self.test = test1(image_array,self.klustr_dao)
-        perimeter = test1.get_perimeter(image_array)
+        # self.test = test1(image_array,self.klustr_dao)
+        # perimeter = test1.get_perimeter(image_array)
         
 
         # Ajouter vos séries de points via le KNN effectué
         #return KNN
-        return np.array([]) #KNN Vas planté
+        #return np.array([]) #KNN Vas planté
         
     
     
@@ -1309,9 +1427,9 @@ class KnnImageClassificationWidget(QWidget):
         # Créer le viewer 3D avec rotation automatique
         self.viewer_3d = Animation.QScatter3dViewer(auto_rotate=True)
         self.viewer_3d.title = "KNN Classification 3D"
-        self.viewer_3d.axis_x.title = "Axis 1"
-        self.viewer_3d.axis_y.title = "Axis 2"
-        self.viewer_3d.axis_z.title = "Axis 3"
+        self.viewer_3d.axis_x.title = "Complexité"
+        self.viewer_3d.axis_y.title = "Remplissage"
+        self.viewer_3d.axis_z.title = "Transitions"
         
         # Créer le widget de contrôle (l'interface UI)
         self.control_widget = QWidget()
@@ -1323,6 +1441,7 @@ class KnnImageClassificationWidget(QWidget):
         self.uiDataset = klustRDataset(klustr_dao)
         self.uiSingleTest = klustRSingleTest(klustr_dao, self.uiDataset)
         self.uiParameter = klustRParameter()
+
         self.layout_control.add_widget(self.uiDataset)
         self.layout_control.add_widget(self.uiSingleTest)
         self.layout_control.add_widget(self.uiParameter)
@@ -1331,13 +1450,15 @@ class KnnImageClassificationWidget(QWidget):
         self.uiSingleTest.setupUi(self.control_widget)
         self.uiParameter.setupUi(self.control_widget)
 
+        self.uiDataset.training_data_ready.connect(self.display_training_data_3d)
+
         self.uiDataset.cmb_dataset.currentIndexChanged.connect(
             self.uiSingleTest.update_images_from_dataset
         )
         #self.viewer_3d.add_serie
         
 
-
+        self.uiSingleTest.btn_classify.clicked.connect(self.on_classify_clicked)
         # Fixer la largeur du panneau de contrôle
         #self.control_widget.set_fixed_width(390)
 
@@ -1347,8 +1468,42 @@ class KnnImageClassificationWidget(QWidget):
         layout.add_widget(self.control_widget,1)
         layout.add_widget(self.viewer_3d , 2)
         layout.contents_margins = (QMargins(0, 0, 0, 0))
-        self.uiSingleTest.btn_classify.clicked.disconnect()
-        self.uiSingleTest.btn_classify.clicked.connect(self.on_classify_clicked)
+        #self.uiSingleTest.btn_classify.clicked.disconnect()
+        
+
+    @Slot(dict)
+    def display_training_data_3d(self, training_data_by_label):
+        """Affiche les données d'entraînement dans le viewer 3D"""
+        if not training_data_by_label:
+            print("Aucune donnée d'entraînement à afficher")
+            return
+        
+        self.viewer_3d.clear()
+        
+        # Ajouter une série pour chaque label avec une couleur différente
+        color_sequence = QColorSequence()
+        
+        for label_name, vectors_3d in training_data_by_label.items():
+            if not vectors_3d:
+                continue
+            
+            # Convertir en numpy array
+            data_array = np.array(vectors_3d)
+            
+            # print(f"   📍 {label_name}: shape={data_array.shape}")
+            # print(f"      Min: {np.min(data_array, axis=0)}")
+            # print(f"      Max: {np.max(data_array, axis=0)}")
+            # print(f"      Moy: {np.mean(data_array, axis=0)}")
+            
+            # Obtenir une couleur unique pour ce label
+            color = color_sequence.next()
+            
+            # Ajouter la série au viewer 3D
+            self.viewer_3d.add_serie(data_array, color, f"Training - {label_name}")
+            
+            #print(f"   ✅ Ajouté {len(vectors_3d)} points pour '{label_name}'")
+
+
 
     @Slot()
     def on_classify_clicked(self):
@@ -1356,18 +1511,30 @@ class KnnImageClassificationWidget(QWidget):
         dist_max = self.uiParameter.get_dist_max_value()
         
         # Appeler avec les valeurs
-        self.array = self.uiSingleTest.classify_current_image(k=k, dist_max=dist_max)
+        test_vector_3d = self.uiSingleTest.classify_current_image(k, dist_max)
+        if test_vector_3d is not None:
+            print(f"Vecteur 3D du test : {test_vector_3d}")
+            # Afficher le point de test en 3D avec une couleur spéciale
+            self.add_test_point_3d(test_vector_3d)
+        else:
+            print("Aucun vecteur 3D retourné")
         
 
     @Slot()
-    def methode(self):
-        self.valeurKNN = np.array()
-        self.add_classification_data(self.valeurKNN,QColorSequence.next(),"")
-
-    
-    def add_classification_data(self, data3d, color, title=''):
-        """Ajoute des données de classification au viewer 3D"""
-        self.viewer_3d.add_serie(data3d, color, title)
+    def add_test_point_3d(self, vector_3d):
+        """Ajoute le point de test en 3D (en rouge vif)"""
+        # S'assurer que c'est un numpy array 2D (1, 3)
+        if isinstance(vector_3d, list):
+            vector_3d = np.array(vector_3d)
+        
+        if vector_3d.ndim == 1:
+            vector_3d = vector_3d.reshape(1, -1)
+        
+        test_data = vector_3d
+        test_color = QColor(255, 0, 0)  # Rouge vif pour le point de test
+        
+        self.viewer_3d.add_serie(test_data, test_color, "⭐ Image à classifier")
+        print(f"✅ Point de test ajouté en 3D : {test_data[0]}")
 
 
 
@@ -1375,8 +1542,8 @@ def main():
     app = QApplication(sys.argv)
 
     #A changer selon votre configuration d'ordinateur
-    #credential = PostgreSQLCredential(password='Yoshi9603')
-    credential = PostgreSQLCredential(password='AAAaaa123')
+    credential = PostgreSQLCredential(password='Yoshi9603')
+    #credential = PostgreSQLCredential(password='AAAaaa123')
     # credential = PostgreSQLCredential(password='123')
 
 
