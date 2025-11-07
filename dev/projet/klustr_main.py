@@ -1238,7 +1238,7 @@ class klustRSingleTest(QWidget):
       
         area = Axe1.get_area(image_array, 0)
         print(f'aire = {area}')
-        perimeter = Axe1.get_perimeter(image_array,0)
+        perimeter = Axe1.get_perimeter_mixte(image_array,0)
         print(f'perimetre = {perimeter}')
         indice_complexite = Axe1.calcul_indice_complexite(image_array,0)
         print(f'indice de complexité: {indice_complexite}')
