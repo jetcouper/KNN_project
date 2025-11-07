@@ -1,13 +1,16 @@
 import sys
 import klustr_3d as Animation
+from test import test1
+from KNN import KNNNumpy, Axe1, Axe2, Axe3
 
+import numpy as np
 # -----------------------------------------------------------------------------
 import PySide6 
 from __feature__ import snake_case, true_property # type: ignore[import-not-found]
 # -----------------------------------------------------------------------------
 
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtCore import Qt, QSize,QRect,QMetaObject,QCoreApplication
+from PySide6.QtCore import Qt, QSize,QRect,QMetaObject,QCoreApplication,QMargins
 from PySide6.QtCore import Signal, Slot
 from PySide6.QtWidgets import  (QApplication, QWidget, QListView, QTreeView,  
                                 QGroupBox, QLabel, QCheckBox, QPlainTextEdit,
@@ -16,6 +19,8 @@ from PySide6.QtWidgets import  (QApplication, QWidget, QListView, QTreeView,
 from PySide6.QtGui import  (QImage, QPixmap, QIcon, QPainter, QFont, QPen, QBrush, QColor, 
                             QStandardItemModel, QStandardItem,
                             QClipboard)
+from color_sequence import QColorSequence
+
 
 # -----------------------------------------------------------------------------
 from shibokensupport import feature # type: ignore[import-not-found]
@@ -36,32 +41,7 @@ from klustr_utils import QtNpConvert
 #    \__\_\\__|   |_|\__\___|_| |_| |_|___/ /_/    |_| |_| |_|\___/ \__,_|\___|_|___/
 #                                                                                    
 
-class KlustRDatasetItem(QStandardItem):
-    def __init__(self, id, name, translated='', rotated='', scaled='', label_count='', training_image_count='', test_image_count=''):
-        super().__init__(name)
 
-        self._id = id
-        self._name = name
-
-        if id == -1:
-            pass
-        else:
-            for name, count in [['Training', training_image_count], ['Test', test_image_count]]:
-                self.append_row([   
-                        QStandardItem(name), 
-                        QStandardItem(translated), 
-                        QStandardItem(rotated), 
-                        QStandardItem(scaled), 
-                        QStandardItem(label_count), 
-                        QStandardItem(count)])
-
-    @property
-    def id(self):
-        return self._id
-
-    @property
-    def name(self):
-        return self._name
 
 
 class KlustRDatasetModel(QStandardItemModel):
@@ -161,8 +141,16 @@ class KlustRImageItem(QStandardItem):
         img = QtNpConvert.qimage_from_png(image)
         self._image = QIcon() if img.is_null() else img
 
+        # pour obtenir matrice des img
+        self._np_image = None
+        if not img.is_null():
+            self._np_image = QtNpConvert.np_from_qimage(img)
+            
         super().__init__(self._thumbnail_icon, self._name)
 
+    @property #ajout comme property
+    def np_image(self):
+        return self._np_image
     @property
     def label_id(self):
         return self._label_id
@@ -221,7 +209,9 @@ class KlustRImageModel(QStandardItemModel):
     def update_from_dataset(self, klustr_dao, dataset_name, label_id, training_image):
         self._update(klustr_dao.image_from_dataset_label(dataset_name, label_id, training_image))
 
-
+    def load_all_np_images(self):
+        pass
+        
 class ColoredWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -535,160 +525,359 @@ class KlustRDataSourceViewWidget(QWidget):
         if selected:
             self.image_info_widget.update_info(self.image_model.item_from_index(selected.indexes()[0]))
 
+    # def get_all_np_images(self):
+    #    items = self.image_model.find_items('*')
+    #    all_matrices = []
+       
+    #    for item in items:
+    #        if hasattr(item, "np_image"):
+    #            if item.np_image != None:
+    #                all_matrices.append(item.np_image)
+       
+    #    print(f'{len(all_matrices)}')
 
 
 
-class KlustrDataSetViewWidget(QWidget):
-    def __init__(self, klustr_dao, parent=None):
+
+
+
+
+
+
+
+#---------------------------------------------------
+#FENÊTRE KNN
+#---------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class KlustRDatasetItem(QStandardItem):
+    def __init__(self, id, name, translated='', rotated='', scaled='', label_count='', training_image_count='', test_image_count=''):
+        super().__init__(name)
+
+        self._id = id
+        self._name = name
+
+        if id == -1:
+            pass
+        else:
+            for name, count in [['Training', training_image_count], ['Test', test_image_count]]:
+                self.append_row([   
+                        QStandardItem(name), 
+                        QStandardItem(translated), 
+                        QStandardItem(rotated), 
+                        QStandardItem(scaled), 
+                        QStandardItem(label_count), 
+                        QStandardItem(count)])
+
+    @property
+    def id(self):
+        return self._id
+
+    @property
+    def name(self):
+        return self._name
+    
+
+    
+
+class klustRDataset(QWidget):
+    training_data_ready = Signal(dict)
+    def __init__(self, klustr_dao ,parent=None):
         super().__init__(parent)
+        self.dataset_model = QStandardItemModel()
+        #self.set_model(self.dataset_model)
         self.klustr_dao = klustr_dao
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-#    QMetaObject, QObject, QPoint, QRect,
-#    QSize, QTime, QUrl, Qt)
-#from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-#    QFont, QFontDatabase, QGradient, QIcon,
-#    QImage, QKeySequence, QLinearGradient, QPainter,
-#    QPalette, QPixmap, QRadialGradient, QTransform)
-#from PySide6.QtWidgets import (QApplication, QComboBox, QGroupBox, QLabel,
-#    QPushButton, QScrollBar, QSizePolicy, QWidget)
-
-class Ui_klustrDataWidget(object):
+    @Slot()
     def setupUi(self, klustrDataWidget):
-        klustrDataWidget.resize(390, 628)
-        self.grbDataset = QGroupBox(klustrDataWidget)
-        self.grbDataset.geometry = (QRect(19, 9, 351, 191))
+        main_layout = QVBoxLayout(self)
 
-        self.cmb_dataset = QComboBox(self.grbDataset)
-        self.cmb_dataset.geometry = (QRect(20, 30, 321, 31))
+        self.grbDataset = QGroupBox("Dataset")
+        self.layout_dataset = QVBoxLayout(self.grbDataset)
 
-        self.grbIncluded = QGroupBox(self.grbDataset)
-        self.grbIncluded.geometry = (QRect(20, 60, 191, 121))
+        self.cmb_dataset = QComboBox()
+        self.cmb_dataset.set_model(self.dataset_model)
+        self.update_datasets(self.klustr_dao)
+        self.cmb_dataset.currentIndexChanged.connect(self.on_dataset_changed)
+        self.layout_dataset.add_widget(self.cmb_dataset)
 
-        self.label_category = QLabel(self.grbIncluded)
-        self.label_category.geometry = (QRect(10, 30, 91, 16))
+        container_widget = QWidget()
+        self.layout_datasetText = QHBoxLayout(container_widget)
+        self.layout_dataset.add_widget(container_widget)
 
-        self.label_training = QLabel(self.grbIncluded)
-        self.label_training.geometry = (QRect(10, 50, 121, 16))
+        self.grbIncluded = QGroupBox()
+        self.grbIncluded.title = "Inclut dans Dataset"
+        layout_included = QVBoxLayout(self.grbIncluded)
 
-        self.label_test = QLabel(self.grbIncluded)
-        self.label_test.geometry = (QRect(10, 70, 101, 16))
+        self.label_category = QLabel("Category count:")
+        self.label_category_count = QLabel("0")
+        self.label_training = QLabel("Training image count:")
+        self.label_training_count = QLabel("0")
+        self.label_test = QLabel("Test image count:")
+        self.label_test_count = QLabel("0")
+        self.label_total_image = QLabel("Total image count:")
+        self.label_total_count = QLabel("0")
 
-        self.label_total_image = QLabel(self.grbIncluded)
-        self.label_total_image.geometry = (QRect(10, 90, 111, 16))
+        category_layout = QHBoxLayout()
+        category_layout.add_widget(self.label_category)
+        category_layout.add_widget(self.label_category_count)
+        category_layout.add_stretch()
 
-        self.label_category_count = QLabel(self.grbIncluded)
-        self.label_category_count.geometry = (QRect(150, 30, 21, 20))
-        self.label_category_count.alignment = (Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        training_layout = QHBoxLayout()
+        training_layout.add_widget(self.label_training)
+        training_layout.add_widget(self.label_training_count)
+        training_layout.add_stretch()
 
-        self.label_training_count = QLabel(self.grbIncluded)
-        self.label_training_count.geometry = (QRect(150, 50, 21, 20))
-        self.label_training_count.alignment = (Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        test_layout = QHBoxLayout()
+        test_layout.add_widget(self.label_test)
+        test_layout.add_widget(self.label_test_count)
+        test_layout.add_stretch()
 
-        self.label_test_count = QLabel(self.grbIncluded)
-        self.label_test_count.geometry = (QRect(150, 70, 21, 20))
-        self.label_test_count.alignment = (Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        total_layout = QHBoxLayout()
+        total_layout.add_widget(self.label_total_image)
+        total_layout.add_widget(self.label_total_count)
+        total_layout.add_stretch()
 
-        self.label_total_count = QLabel(self.grbIncluded)
-        self.label_total_count.geometry = (QRect(150, 90, 21, 20))
-        self.label_total_count.alignment = (Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        layout_included.add_layout(category_layout)
+        layout_included.add_layout(training_layout)
+        layout_included.add_layout(test_layout)
+        layout_included.add_layout(total_layout)
 
-        self.grbTransformation = QGroupBox(self.grbDataset)
-        self.grbTransformation.geometry = (QRect(220, 60, 121, 121))
+        self.layout_datasetText.add_widget(self.grbIncluded)
 
-        self.label_translated = QLabel(self.grbTransformation)
-        self.label_translated.geometry = (QRect(10, 30, 71, 16))
+        self.grbTransformation = QGroupBox()
+        self.grbTransformation.title = "Transformation"
+        layout_transformation = QVBoxLayout(self.grbTransformation)
 
-        self.label_rotated = QLabel(self.grbTransformation)
-        self.label_rotated.geometry = (QRect(10, 50, 49, 16))
+        self.label_translated = QLabel("Translated:")
+        self.label_translated_value = QLabel("false")
+        self.label_rotated = QLabel("Rotated:")
+        self.label_rotated_value = QLabel("false")
+        self.label_scaled = QLabel("Scaled:")
+        self.label_scaled_value = QLabel("false")
 
-        self.label_scaled = QLabel(self.grbTransformation)
-        self.label_scaled.geometry = (QRect(10, 70, 49, 16))
+        translate_layout = QHBoxLayout()
+        translate_layout.add_widget(self.label_translated)
+        translate_layout.add_widget(self.label_translated_value)
+        translate_layout.add_stretch()
 
-        self.label_translated_value = QLabel(self.grbTransformation)
-        self.label_translated_value.geometry = (QRect(80, 30, 31, 20))
+        rotated_layout = QHBoxLayout()
+        rotated_layout.add_widget(self.label_rotated)
+        rotated_layout.add_widget(self.label_rotated_value)
+        rotated_layout.add_stretch()
 
-        self.label_rotated_value = QLabel(self.grbTransformation)
-        self.label_rotated_value.geometry = (QRect(80, 50, 31, 16))
-
-        self.label_scaled_value = QLabel(self.grbTransformation)
-        self.label_scaled_value.geometry = (QRect(80, 70, 31, 16))
-
-        self.grb_simple_test = QGroupBox(klustrDataWidget)
-        self.grb_simple_test.geometry = (QRect(20, 200, 351, 271))
-
-        self.cmb_image = QComboBox(self.grb_simple_test)
-        self.cmb_image.geometry = (QRect(20, 30, 311, 24))
-
-        self.view_label_image = QLabel(self.grb_simple_test)
-        self.view_label_image.geometry = (QRect(20, 60, 311, 141))
-        self.view_label_image.style_sheet = (u"background-color : #313D4A; padding : 10px 10px 10px 10px;")
-
-        self.btn_classify = QPushButton(self.grb_simple_test)
-        self.btn_classify.geometry = (QRect(20, 210, 311, 24))
-
-        self.label_classified = QLabel(self.grb_simple_test)
-        self.label_classified.geometry = (QRect(130, 240, 111, 20))
-        self.label_classified.alignment = (Qt.AlignmentFlag.AlignCenter)
-
-        self.grb_parametre = QGroupBox(klustrDataWidget)
-        self.grb_parametre.geometry = (QRect(20, 470, 351, 101))
+        scaled_layout = QHBoxLayout()
+        scaled_layout.add_widget(self.label_scaled)
+        scaled_layout.add_widget(self.label_scaled_value)
+        scaled_layout.add_stretch()
 
 
-        self.scoll_bar_k = QScrollBar(self.grb_parametre)
-        self.scoll_bar_k.geometry = (QRect(120, 40, 221, 21))
-        self.scoll_bar_k.min = (10)
-        self.scoll_bar_k.max = (10)
-        self.scoll_bar_k.orientation = (Qt.Orientation.Horizontal)
 
-        self.scroll_bar_dist = QScrollBar(self.grb_parametre)
-        self.scroll_bar_dist.geometry = (QRect(120, 75, 221, 21))
-        self.scroll_bar_dist.minimum = (0)
-        self.scroll_bar_dist.max = (10)
-        self.scroll_bar_dist.orientation = (Qt.Orientation.Horizontal)
+        layout_transformation.add_layout(translate_layout)
+        layout_transformation.add_layout(rotated_layout)
+        layout_transformation.add_layout(scaled_layout)
 
-        self.label_k = QLabel(self.grb_parametre)
-        self.label_k.geometry = (QRect(10, 40, 49, 21))
-        self.label_k.alignment = (Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
 
-        self.label_dist_max = QLabel(self.grb_parametre)
-        self.label_dist_max.geometry = (QRect(10, 80, 61, 16))
+        self.layout_datasetText.add_widget(self.grbTransformation)
 
-        self.label_dist_max_value = QLabel(self.grb_parametre)
-        self.label_dist_max_value.geometry = (QRect(70, 80, 31, 20))
-
-        self.label_k_value = QLabel(self.grb_parametre)
-        self.label_k_value.geometry = (QRect(70, 41, 31, 20))
-
-        self.btn_about = QPushButton(klustrDataWidget)
-        self.btn_about.geometry = (QRect(20, 580, 351, 24))
+        main_layout.add_widget(self.grbDataset)
 
         self.retranslateUi(klustrDataWidget)
 
-        QMetaObject.connect_slots_by_name = (klustrDataWidget)
-    # setupUi
+    @Slot()
+    def on_dataset_changed(self):
+        """Appelé quand le dataset change - met à jour les stats ET calcule les données 3D"""
+        self.update_dataset_stats_simple()
+        self.compute_and_display_training_data()
 
+
+    @Slot()
+    def compute_and_display_training_data(self):
+        """Calcule les vecteurs 3D de toutes les images d'entraînement du dataset sélectionné"""
+        
+        selected_item = self.get_selected_dataset_item()
+        
+        if selected_item is None:
+            print("Aucun dataset sélectionné")
+            return
+        
+        dataset_name = selected_item.name
+        
+        # Récupérer tous les labels du dataset
+        labels = self.klustr_dao.labels_from_dataset(dataset_name)
+        
+        # Préparer les données par label
+        training_image_par_label = {}
+        total_images = 0
+        
+        for label in labels:
+            label_id = label[0]
+            label_name = label[1]
+            
+            # Récupérer les images d'ENTRAÎNEMENT pour ce label
+            training_images = self.klustr_dao.image_from_dataset_label(dataset_name, label_id, True)
+            
+            training_image_par_label[label_name] = []
+            
+            for image_info in training_images:
+                img_bytes = image_info[6]
+                
+                if img_bytes is None:
+                    continue
+                
+                try:
+                    qimage = QtNpConvert.qimage_from_png(img_bytes)
+                    
+                    if qimage.is_null():
+                        continue
+                    
+                    image_array = QtNpConvert.np_from_qimage(qimage)
+                    
+                    # Calculer le vecteur 3D avec VOS méthodes
+                    vecteur_3d = self.calculate_3d_descriptor(image_array)
+                    
+                    training_image_par_label[label_name].append(vecteur_3d)
+                    total_images += 1
+                
+                except Exception as e:
+                    print(f"Erreur lors du calcul du descripteur : {e}")
+                    import traceback
+                    traceback.print_exc()
+                    continue
+        
+        # Émettre le signal avec les données calculées
+        print(f"Calcul terminé : {total_images} images traitées")
+        for label, vectors in training_image_par_label.items():
+            print(f"   - {label}: {len(vectors)} images")
+        
+        self.training_data_ready.emit(training_image_par_label)
+
+    def calculate_3d_descriptor(self, image_array):
+        """
+        Calcule le vecteur 3D en utilisant VOS 3 axes :
+        - Axe 1 : Indice de complexité (périmètre)
+        - Axe 2 : Pourcentage de remplissage
+        - Axe 3 : Nombre de transitions
+        """
+        # try:
+            # Axe 1 : Indice de complexité
+        axe1 = Axe1.calcul_indice_complexite(image_array, 0)
+        
+        # Axe 2 : Analyse du remplissage
+        centroid, farthest, percentage = Axe2.analyze_image(image_array)
+        axe2 = percentage
+        
+        # Axe 3 : Transitions sur un cercle
+        axe3 = Axe3.count_nb_transitions_along__negative_circle(
+            image_array, 
+            center=(int(centroid[1]), int(centroid[0])),  # Centroid calculé
+            thickness=3
+        )
+        
+        return [axe1, axe2, axe3]
+            
+        # except Exception as e:
+        #     print(f"Erreur calcul descripteur : {e}")
+        #     import traceback
+        #     traceback.print_exc()
+        #     return [0, 0, 0]
+
+    def get_training_images_from_dataset(self):
+        """Retourne toutes les images d'ENTRAÎNEMENT du dataset sélectionné"""
+        
+        selected_item = self.get_selected_dataset_item()
+        if selected_item is None:
+            return []
+        
+        dataset_name = selected_item.name
+        all_training_images = []
+        
+        # Récupérer les labels du dataset
+        labels = self.klustr_dao.labels_from_dataset(dataset_name)
+        
+        for label in labels:
+            label_id = label[0]
+            label_name = label[1]
+            
+            # Récupérer UNIQUEMENT les images d'ENTRAÎNEMENT (training=True)
+            training_images = self.klustr_dao.image_from_dataset_label(dataset_name, label_id, True)
+            
+            for image_info in training_images:
+                all_training_images.append((image_info, label_name))
+        
+        return all_training_images
+
+    @Slot()
     def retranslateUi(self, klustrDataWidget):
         klustrDataWidget.set_window_role = "klustrDataWidget"
         self.grbDataset.title = "Dataset"
@@ -708,25 +897,653 @@ class Ui_klustrDataWidget(object):
         self.label_translated_value.text ="false"
         self.label_rotated_value.text ="false"
         self.label_scaled_value.text ="false"
-        self.grb_simple_test.title = "Teste simple"
-        self.view_label_image.text =("")
-        self.btn_classify.text ="Classifier"
-        self.label_classified.text ="non-classifié"
+
+        self.update_dataset_stats_simple()
+
+
+    
+
+    @Slot()
+    def update_datasets(self, klustr_dao):
+        self.dataset_model.clear()
+        
+        # Ajouter "Tous les datasets"
+        #item = KlustRDatasetItem(-1, 'Toutes les images')
+        #self.dataset_model.append_row(item)
+        
+        # Ajouter les datasets
+        for dataset in klustr_dao.available_datasets:
+            item = KlustRDatasetItem(
+                dataset[0],  # id
+                dataset[1],  # name
+                'true' if dataset[2] else 'false',  # translated
+                'true' if dataset[3] else 'false',  # rotated
+                'true' if dataset[4] else 'false',  # scaled
+                f'{dataset[5]}',  # label_count
+                f'{dataset[6]}',  # training_image_count
+                f'{dataset[7]}'   # test_image_count
+            )
+            self.dataset_model.append_row(item)
+    
+    def get_selected_dataset_id(self):
+        """Retourne l'ID du dataset sélectionné"""
+        item = self.dataset_model.item(self.current_index)
+        if isinstance(item, KlustRDatasetItem):
+            return item.id
+        return None
+    
+
+    def get_selected_dataset_item(self):
+        """Retourne l'item complet du dataset sélectionné"""
+        current_index = self.cmb_dataset.current_index
+        item = self.dataset_model.item(current_index)
+        if isinstance(item, KlustRDatasetItem):
+            return item
+        return None
+    
+
+    @Slot()
+    def update_dataset_stats_simple(self):
+        #Version simplifiée utilisant directement les données du DAO
+        selected_item = self.get_selected_dataset_item()
+        if hasattr(self, '_updating_stats') and self._updating_stats:
+            return
+        
+        self._updating_stats = True
+        try:
+            selected_item = self.get_selected_dataset_item()
+
+            if selected_item is None:
+                return
+
+            
+                # Récupérer les informations du dataset directement
+            for dataset in self.klustr_dao.available_datasets:
+                if dataset[0] == selected_item.id:
+                    # dataset[0] = id
+                    # dataset[2] = translated
+                    # dataset[3] = rotated
+                    # dataset[4] = scaled
+                    # dataset[5] = label_count
+                    # dataset[6] = training_image_count
+                    # dataset[7] = test_image_count
+                    # dataset[8] = total_image_count
+                    self.label_category_count.text = str(dataset[5])
+                    self.label_training_count.text = str(dataset[6])
+                    self.label_test_count.text = str(dataset[7])
+                    self.label_total_count.text = str(dataset[8])
+                    self.label_translated_value.text = "true" if dataset[2] else "false"
+                    self.label_rotated_value.text = "true" if dataset[3] else "false"
+                    self.label_scaled_value.text = "true" if dataset[4] else "false"
+                    break
+        finally:
+            self._updating_stats = False
+
+        
+
+
+class klustRParameter(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    @Slot()
+    def setupUi(self, klustrDataWidget):
+        main_layout = QVBoxLayout(self)
+
+        self.grb_parametre = QGroupBox("Paramètres Knn")
+        self.layout_parametre = QVBoxLayout(self.grb_parametre)
+
+        self.scoll_bar_k = QScrollBar()
+        self.scoll_bar_k.minimum = (1)
+        self.scoll_bar_k.maximum = (10)
+        self.scoll_bar_k.value = 3
+        self.scoll_bar_k.orientation = (Qt.Orientation.Horizontal)
+        self.scoll_bar_k.valueChanged.connect(self.update_k_value)
+        self.layout_parametre.add_widget(self.scoll_bar_k)
+
+        self.scroll_bar_dist = QScrollBar()
+        self.scroll_bar_dist.minimum = (1)
+        self.scroll_bar_dist.maximum = (10)
+        self.scroll_bar_dist.value = 5
+        self.scroll_bar_dist.orientation = (Qt.Orientation.Horizontal)
+        self.scroll_bar_dist.valueChanged.connect(self.update_dist_max_value)
+        self.layout_parametre.add_widget(self.scroll_bar_dist)
+
+        layout_k = QHBoxLayout()
+        self.label_k = QLabel()
+        self.label_k_value = QLabel()
+        layout_k.add_widget(self.label_k)
+        layout_k.add_widget(self.label_k_value)
+        layout_k.add_stretch()
+
+        layout_dist = QHBoxLayout()
+        self.label_dist_max = QLabel()
+        self.label_dist_max_value = QLabel()
+        layout_dist.add_widget(self.label_dist_max)
+        layout_dist.add_widget(self.label_dist_max_value)
+        layout_dist.add_stretch()
+        
+        layout_k_dist = QHBoxLayout()
+        layout_k_dist.add_layout(layout_k)
+        layout_k_dist.add_layout(layout_dist)
+        layout_k_dist.add_stretch()
+        self.layout_parametre.add_layout(layout_k_dist)
+
+
+        self.btn_about = QPushButton()
+        self.btn_about.clicked.connect(self.about_klustrWidget)
+        self.layout_parametre.add_widget(self.btn_about)
+
+        
+
+        main_layout.add_widget(self.grb_parametre)
+        self.retranslateUi(klustrDataWidget)
+
+
+
+    @Slot()
+    def retranslateUi(self, klustrDataWidget):
+        klustrDataWidget.set_window_role = "klustrDataWidget"
         self.grb_parametre.title = "Paramètres Knn"
         self.label_k.text ="K ="
         self.label_dist_max.text ="Max dist ="
         self.label_dist_max_value.text ="0.00"
         self.label_k_value.text ="0"
         self.btn_about.text ="A propos"
-    # retranslateUi
+
+    @Slot()
+    def update_k_value(self):
+        k_value = self.scoll_bar_k.value
+        self.label_k_value.text = str(k_value)
+
+    @Slot()
+    def update_dist_max_value(self):
+        dist_value = self.scroll_bar_dist.value / 10.0
+        self.label_dist_max_value.text = f"{dist_value:.2f}"
+
+
+    def get_k_value(self):
+        #Retourne la valeur actuelle de K
+        return self.scoll_bar_k.value
+    
+    def get_dist_max_value(self):
+        #Retourne la valeur actuelle de la distance max
+        return self.scroll_bar_dist.value / 10.0
+    
+    @Slot()
+    def about_klustrWidget(self):
+        msgBox = QMessageBox()
+        msgBox.text = ("Ce logiciel est le projet no 1 du cours C52. \r\n Il a été réalisé par :\r\n \u0009 - __étudiant_1__\r\n \u0009- __étudiant_n__ \r\n \r\n "
+        "Il consiste à faire __quelque_chose__ avec les concepts suivants :\r\n \u0009- __concept_1__\r\n \u0009- __concept_n__\r\n \r\n Nos 3 descripteurs de forme sont :\r\n"
+        " - __decripteur_1__\r\n \u0009 - en __unité__ pour le domaine __domaine__\r\n \u0009- correspondant à __courte_description__\r\n - __decripteur_2__\r\n \u0009"
+        " - en __unité__ pour le domaine __domaine__\r\n \u0009- correspondant à __courte_description__\r\n - __decripteur_3__\r\n \u0009- en __unité__ pour le domaine __domaine__"
+        "\r\n \u0009- correspondant à __courte_description__\r\n \r\n Plus précisément, ce laboratoire permet de mettre en pratique les notions de :\r\n"
+        "\u0009 - __notion_1__\r\n \u0009- __notion_n__\r\n \r\n Un effort d'abstraction a été fait pour ces points :\r\n \u0009- __point_1__\r\n \u0009- __point_n__"
+        "\r\n \r\nFinalement, l’ensemble de données le plus complexe que nous avons été capable de résoudre est\r\n :\r\n - __nom_de_l_ensemble_de_données__")
+        msgBox.exec()
+
+
+
+
+class klustRSingleTest(QWidget):
+    def __init__(self, klustr_dao,klustr_dataset_widget=None , parent=None):
+        
+        super().__init__(parent)
+        self.klustr_dao = klustr_dao
+        self.klustr_dataset_widget = klustr_dataset_widget
+
+
+    @Slot()
+    def setupUi(self, klustrDataWidget):
+        main_layout = QVBoxLayout(self)
+
+        self.grb_simple_test = QGroupBox("Test simple")
+        self.layout_simple_test = QVBoxLayout(self.grb_simple_test)
+        self.image_combobox_model = QStandardItemModel()
+        self.cmb_image = QComboBox()
+        self.cmb_image.set_model(self.image_combobox_model)
+        self.cmb_image.currentIndexChanged.connect(self.update_image_display)
+        self.layout_simple_test.add_widget(self.cmb_image)
+
+
+        container_widget = QWidget()
+        self.view_label_image = QLabel(container_widget)
+        self.view_label_image.set_fixed_height(150)
+        self.view_label_image.style_sheet = (u"background-color : #313D4A; padding : 10px 10px 10px 10px;")
+        self.view_label_image.alignment = Qt.AlignCenter
+        self.view_label_image.scaled_contents = False
+        self.layout_simple_test.add_widget(self.view_label_image)
+
+
+
+        self.btn_classify = QPushButton()
+        #self.btn_classify.clicked.connect(self.classify_current_image)
+        self.layout_simple_test.add_widget(self.btn_classify)
+
+        self.label_classified = QLabel()
+        self.label_classified.alignment = (Qt.AlignmentFlag.AlignCenter)
+        self.layout_simple_test.add_widget(self.label_classified)
+        
+        main_layout.add_widget(self.grb_simple_test)
+
+        self.retranslateUi(klustrDataWidget)
+        self.update_images_from_dataset()
+        
+
+
+    
+
+    @Slot()
+    def update_images_from_dataset(self):
+        """Charge toutes les images du dataset sélectionné dans cmb_image"""
+
+
+        if not hasattr(self, 'image_combobox_model'):
+            return
+
+        if not hasattr(self, 'cmb_image'):
+            return
+
+        if self.klustr_dataset_widget is None:
+            return
+
+        try:
+           #Pour temporairement modifier le cmb_image
+           self.cmb_image.currentIndexChanged.disconnect(self.update_image_display)
+        except:
+           pass  # Ignorer si déjà déconnecté
+       
+        # Créer un nouveau modèle propre
+        self.image_combobox_model = QStandardItemModel()
+        self.cmb_image.set_model(self.image_combobox_model)
+
+        selected_item = self.klustr_dataset_widget.get_selected_dataset_item()
+
+        if selected_item is None:
+            return
+        
+        
+        # Créer un nouveau modèle propre
+        self.image_combobox_model = QStandardItemModel()
+        self.cmb_image.set_model(self.image_combobox_model)
+
+        
+        # Dataset spécifique sélectionné
+        dataset_name = selected_item.name
+        # Récupérer les labels du dataset
+        labels = self.klustr_dao.labels_from_dataset(dataset_name)
+        for label in labels:
+            label_id = label[0]
+            label_name = label[1]
+
+            # Récupérer UNIQUEMENT les images de TEST (training=False)
+            test_images = self.klustr_dao.image_from_dataset_label(dataset_name, label_id, False)
+            for image_info in test_images:
+                image_name = f"{label_name} - Test - {image_info[3]}"
+                item = QStandardItem(image_name)
+                item.set_data(image_info, Qt.UserRole) 
+                self.image_combobox_model.append_row(item)
+
+        self.cmb_image.currentIndexChanged.connect(self.update_image_display)
+
+        if self.image_combobox_model.row_count() > 0:
+            self.cmb_image.current_index = 0
+            self.update_image_display()
+
+
+    def get_training_images_from_dataset(self):
+        """Retourne toutes les images d'ENTRAÎNEMENT du dataset sélectionné"""
+
+        if self.klustr_dataset_widget is None:
+            return []
+
+        selected_item = self.klustr_dataset_widget.get_selected_dataset_item()
+        if selected_item is None:
+            return []
+
+        dataset_name = selected_item.name
+        all_training_images = []
+
+        # Récupérer les labels du dataset
+        labels = self.klustr_dao.labels_from_dataset(dataset_name)
+
+        for label in labels:
+            label_id = label[0]
+            label_name = label[1]
+
+            # Récupérer UNIQUEMENT les images d'ENTRAÎNEMENT (training=True)
+            training_images = self.klustr_dao.image_from_dataset_label(dataset_name, label_id, True)
+
+            for image_info in training_images:
+                all_training_images.append((image_info, label_name))
+
+        return all_training_images
+
+    @Slot()
+    def update_image_display(self):
+        """Affiche l'image sélectionnée dans view_label_image, centrée"""
+        
+        if not hasattr(self, 'cmb_image') or not hasattr(self, 'image_combobox_model'):
+            return
+        
+        current_index = self.cmb_image.current_index
+        
+        if current_index < 0:
+            self.view_label_image.clear()
+            self.view_label_image.text = ""
+            return
+        
+        # Récupérer l'item sélectionné
+        item = self.image_combobox_model.item(current_index)
+        
+        if item is None:
+            return
+        
+        # Récupérer les données de l'image stockées dans l'item
+        image_info = item.data(Qt.UserRole)
+        
+        if image_info is None:
+            return
+        
+        # image_info[6] contient l'image complète (PNG)
+        img = QtNpConvert.qimage_from_png(image_info[6])
+        
+        if not img.is_null():
+            pixmap = QPixmap.from_image(img)
+            
+            label_size = self.view_label_image.size
+            
+            scaled_pixmap = pixmap.scaled(
+                label_size,
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation
+            )
+            
+            self.view_label_image.pixmap = scaled_pixmap
+            
+            self.view_label_image.text = ""
+            
+        else:
+            # Si l'image est nulle, afficher un message
+            self.view_label_image.clear()
+            self.view_label_image.text = "Image non disponible"
+
+    
+    # fabrication du UI
+    @Slot()
+    def retranslateUi(self, klustrDataWidget):
+        klustrDataWidget.set_window_role = "klustrDataWidget"
+        self.grb_simple_test.title = "Teste simple"
+        self.view_label_image.text =("")
+        self.btn_classify.text ="Classifier"
+        self.label_classified.text ="non-classifié"
+
+    
+
+ 
+    
+
+
+    def get_current_image_info(self):
+        #Retourne les informations de l'image actuellement sélectionnée
+
+        if not hasattr(self, 'cmb_image') or not hasattr(self, 'image_combobox_model'):
+            return None
+
+        current_index = self.cmb_image.current_index
+
+        if current_index < 0:
+            return None
+
+        item = self.image_combobox_model.item(current_index)
+
+        if item is None:
+            return None
+
+        return item.data(Qt.UserRole)
+    
+    def get_current_image_as_array(self):
+        #Retourne l'image actuelle sous forme de numpy array (150, 150)
+
+        image_info = self.get_current_image_info()
+        
+        if image_info is None:
+            return None
+        
+        
+        qimage = QtNpConvert.qimage_from_png(image_info[6])
+        print(image_info[6])
+        if qimage.is_null():
+            return None
+        
+        
+        image_array = QtNpConvert.np_from_qimage(qimage)
+        
+        return image_array
+
+
+    @Slot()
+    def classify_current_image(self, k=None, dist_max=None):
+        
+        all_training_images = self.get_training_images_from_dataset()
+    
+        if not all_training_images:
+            print("Aucune image d'entraînement trouvée dans le dataset.")
+            self.label_classified.text = "Pas de données d'entraînement"
+            return None
+        
+        # Préparer les images d'entraînement pour le KNN
+        all_images_preparer = []
+        
+        for image_info, label_name in all_training_images:
+            img_bytes = image_info[6]  # L'image complète
+            
+            if img_bytes is None:
+                continue
+             
+            try:
+                qimage = QtNpConvert.qimage_from_png(img_bytes)
+                
+                if qimage.is_null():
+                    continue
+                 
+                image_array = QtNpConvert.np_from_qimage(qimage)
+                all_images_preparer.append((image_array, label_name))
+            
+            except Exception as e:
+                print(f"Erreur lors du décodage d'une image d'entraînement : {e}")
+                continue
+             
+        if not all_images_preparer:
+            print("Aucune image d'entraînement valide décodée.")
+            self.label_classified.text = "Erreur de préparation"
+            return None
+        
+        # Récupérer l'image de TEST sélectionnée dans cmb_test
+        image_a_classifier = self.get_current_image_as_array()
+        
+        if image_a_classifier is None:
+            self.label_classified.text = "Aucune image de test sélectionnée"
+            return None
+
+        
+        # Récupérer les paramètres
+        if k is None:
+            k = 3
+        if dist_max is None:
+            dist_max = 0.5
+
+        self.knn = KNNNumpy(k,dist_max, all_images_preparer,image_a_classifier)
+        #label_predicted, distance_avg, confiance = self.knn.predict_image_actuelle()
+        return self.knn.vecteur_3d_image_simple
+
+
+
+
+
+        #    image = [150, 0.3, 72]
+        #
+        #    # knn_n.add_point([1501, 0.3, 72], "pomme")
+        #    # knn_n.add_point([1502, 0.3, 72], "patate")
+        #    # knn_n.add_point([1503, 0.3, 72], "banane")
+        #    # knn_n.add_point([1504, 0.3, 72], "pomme")
+        #    # knn_n.add_point([1504, 0.3, 72], "pomme")
+        #    # knn_n.add_point([1504, 0.3, 72], "pomme")
+        #    knn_n.add_points(np.array([[150, 0.3, 72], [150, 0.3, 72], [200, 0.8, 50]]), np.array(["pomme", "pomme", "banane"]))
+        #
+        #    knn_n.k = 2
+        #    resultat = knn_n.predict(image)
+
+
+
+        # print(f"Image shape: {image_array.shape}")
+        # print(f"Classification avec K={k} et distance_max={dist_max}")
+        
+        # Appeler votre algorithme KNN
+        # predicted_label = your_knn_classifier.classify(image_array, k=k, dist_max=dist_max)
+        
+        # Pour tester, afficher des infos
+        # self.label_classified.text = f"Shape: {image_array.shape}"
+
+        # self.test = test1(image_array,self.klustr_dao)
+        # perimeter = test1.get_perimeter(image_array)
+        
+
+        # Ajouter vos séries de points via le KNN effectué
+        #return KNN
+        #return np.array([]) #KNN Vas planté
+        
+    
+    
+
+class KnnImageClassificationWidget(QWidget):
+    """Widget pour la classification KNN avec visualisation 3D"""
+    
+    def __init__(self, klustr_dao, parent=None):
+        super().__init__(parent)
+        
+        self.klustr_dao = klustr_dao
+        
+        # Créer le viewer 3D avec rotation automatique
+        self.viewer_3d = Animation.QScatter3dViewer(auto_rotate=True)
+        self.viewer_3d.title = "KNN Classification 3D"
+        self.viewer_3d.axis_x.title = "Complexité"
+        self.viewer_3d.axis_y.title = "Remplissage"
+        self.viewer_3d.axis_z.title = "Transitions"
+        
+        # Créer le widget de contrôle (l'interface UI)
+        self.control_widget = QWidget()
+        # J'importe UiklustrDataWidget depuis ton fichier principal
+        self.layout_control = QVBoxLayout(self.control_widget)
+
+
+        
+        self.uiDataset = klustRDataset(klustr_dao)
+        self.uiSingleTest = klustRSingleTest(klustr_dao, self.uiDataset)
+        self.uiParameter = klustRParameter()
+
+        self.layout_control.add_widget(self.uiDataset)
+        self.layout_control.add_widget(self.uiSingleTest)
+        self.layout_control.add_widget(self.uiParameter)
+        
+        self.uiDataset.setupUi(self.control_widget)
+        self.uiSingleTest.setupUi(self.control_widget)
+        self.uiParameter.setupUi(self.control_widget)
+
+        self.uiDataset.training_data_ready.connect(self.display_training_data_3d)
+
+        self.uiDataset.cmb_dataset.currentIndexChanged.connect(
+            self.uiSingleTest.update_images_from_dataset
+        )
+        #self.viewer_3d.add_serie
+        
+
+        self.uiSingleTest.btn_classify.clicked.connect(self.on_classify_clicked)
+        # Fixer la largeur du panneau de contrôle
+        #self.control_widget.set_fixed_width(390)
+
+        
+        # Layout horizontal : contrôles à gauche, viewer 3D à droite
+        layout = QHBoxLayout(self)
+        layout.add_widget(self.control_widget,1)
+        layout.add_widget(self.viewer_3d , 2)
+        layout.contents_margins = (QMargins(0, 0, 0, 0))
+        #self.uiSingleTest.btn_classify.clicked.disconnect()
+        
+
+    @Slot(dict)
+    def display_training_data_3d(self, training_data_by_label):
+        """Affiche les données d'entraînement dans le viewer 3D"""
+        if not training_data_by_label:
+            print("Aucune donnée d'entraînement à afficher")
+            return
+        
+        self.viewer_3d.clear()
+        
+        # Ajouter une série pour chaque label avec une couleur différente
+        color_sequence = QColorSequence()
+        
+        for label_name, vectors_3d in training_data_by_label.items():
+            if not vectors_3d:
+                continue
+            
+            # Convertir en numpy array
+            data_array = np.array(vectors_3d)
+            
+            # print(f"   📍 {label_name}: shape={data_array.shape}")
+            # print(f"      Min: {np.min(data_array, axis=0)}")
+            # print(f"      Max: {np.max(data_array, axis=0)}")
+            # print(f"      Moy: {np.mean(data_array, axis=0)}")
+            
+            # Obtenir une couleur unique pour ce label
+            color = color_sequence.next()
+            
+            # Ajouter la série au viewer 3D
+            self.viewer_3d.add_serie(data_array, color, f"Training - {label_name}")
+            
+            #print(f"   ✅ Ajouté {len(vectors_3d)} points pour '{label_name}'")
+
+
+
+    @Slot()
+    def on_classify_clicked(self):
+        k = self.uiParameter.get_k_value()
+        dist_max = self.uiParameter.get_dist_max_value()
+        
+        # Appeler avec les valeurs
+        test_vector_3d = self.uiSingleTest.classify_current_image(k, dist_max)
+        if test_vector_3d is not None:
+            print(f"Vecteur 3D du test : {test_vector_3d}")
+            # Afficher le point de test en 3D avec une couleur spéciale
+            self.add_test_point_3d(test_vector_3d)
+        else:
+            print("Aucun vecteur 3D retourné")
+        
+
+    @Slot()
+    def add_test_point_3d(self, vector_3d):
+        """Ajoute le point de test en 3D (en rouge vif)"""
+        # S'assurer que c'est un numpy array 2D (1, 3)
+        if isinstance(vector_3d, list):
+            vector_3d = np.array(vector_3d)
+        
+        if vector_3d.ndim == 1:
+            vector_3d = vector_3d.reshape(1, -1)
+        
+        test_data = vector_3d
+        test_color = QColor(255, 0, 0)  # Rouge vif pour le point de test
+        
+        self.viewer_3d.add_serie(test_data, test_color, "⭐ Image à classifier")
+        print(f"✅ Point de test ajouté en 3D : {test_data[0]}")
+
 
 
 def main():
     app = QApplication(sys.argv)
 
     #A changer selon votre configuration d'ordinateur
-    credential = PostgreSQLCredential(password='Yoshi9603')
-    #credential = PostgreSQLCredential(password='AAAaaa123')
+    #credential = PostgreSQLCredential(password='Yoshi9603')
+    credential = PostgreSQLCredential(password='AAAaaa123')
     # credential = PostgreSQLCredential(password='123')
 
 
@@ -740,7 +1557,7 @@ def main():
     source_data_widget = KlustRDataSourceViewWidget(klustr_dao)
     
     # Deuxième vue : KNN Classification 3D
-    knn_widget = Animation.KnnImageClassificationWidget(klustr_dao)
+    knn_widget = KnnImageClassificationWidget(klustr_dao)
     
     # Ajouter les onglets
     tab_widget.add_tab(source_data_widget, "KlustR Source Viewer")
@@ -749,11 +1566,13 @@ def main():
     # Afficher la fenêtre principale
     tab_widget.resize(1200, 800)
     tab_widget.show()
-    #source_data_widget.show()
-
+    source_data_widget.show()
+    
+    
+    #ajouté pour empêcher la fermeture 
     sys.exit(app.exec())
-
 
 if __name__ == '__main__':
     main()
     
+  
