@@ -1542,7 +1542,7 @@ class KnnImageClassificationWidget(QWidget):
 
         
         self.viewer_3d.add_serie(test_data, test_color, title)
-        print(f"✅ Point de test ajouté en 3D : {test_data[0]}")
+        print(f"Point de test ajouté en 3D : {test_data[0]}")
 
 
 
