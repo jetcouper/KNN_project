@@ -50,6 +50,9 @@ class KNNNumpy():
         self.__dist_max = dist
 
         self.__all_data, self.__all_label = map(list, zip(*all_images))
+
+        self.__all_data = np.array(self.__all_data)
+        self.__all_label = np.array(self.__all_label)
         
         self.__image_actuel = image_actuel
 
@@ -115,7 +118,7 @@ class KNNNumpy():
 
         distance_min = k_distances[0]
         if distance_min > self.__dist_max:
-            return None, distance_min, 0,0
+            return None, distance_min, 0
         
 
         # compter celui qui a le plus de fois le meme type

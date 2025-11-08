@@ -1,6 +1,5 @@
 import sys
 import klustr_3d as Animation
-from test import test1
 from KNN import KNNNumpy, Axe1, Axe2, Axe3
 
 import numpy as np
@@ -1280,10 +1279,6 @@ class klustRSingleTest(QWidget):
 
     
 
- 
-    
-
-
     def get_current_image_info(self):
         #Retourne les informations de l'image actuellement sélectionnée
 
@@ -1348,7 +1343,10 @@ class klustRSingleTest(QWidget):
                     continue
                  
                 image_array = QtNpConvert.np_from_qimage(qimage)
-                all_images_preparer.append((image_array, label_name))
+                vecteur_3d = self.calculate_3d_descriptor(image_array)
+
+
+                all_images_preparer.append((vecteur_3d, label_name))
             
             except Exception as e:
                 print(f"Erreur lors du décodage d'une image d'entraînement : {e}")
@@ -1374,45 +1372,50 @@ class klustRSingleTest(QWidget):
             dist_max = 0.5
 
         self.knn = KNNNumpy(k,dist_max, all_images_preparer,image_a_classifier)
-        #label_predicted, distance_avg, confiance = self.knn.predict_image_actuelle()
-        return self.knn.vecteur_3d_image_simple
+        predicted_label, avg_distance, confiance = self.knn.predict_image_actuelle()
+
+        if predicted_label is None:
+            self.label_classified.text = f"Non classifié (distance trop grande: {avg_distance:.4f})"
+            print(f"Classification rejetée - distance: {avg_distance:.4f} > {dist_max}")
+        else:
+            self.label_classified.text = f"Classé comme: {predicted_label}\n" \
+                                          f"Distance moy: {avg_distance:.4f}\n" \
+                                          f"Confiance: {confiance*100:.1f}%"
+            print(f"Classification réussie:")
+            print(f"Label prédit: {predicted_label}")
+            print(f"Distance moyenne: {avg_distance:.4f}")
+            print(f"Confiance: {confiance*100:.1f}%")
+
+        #Retourner le vecteur 3D ET les résultats de classification
+        return {
+            'vecteur_3d': self.knn.vecteur_3d_image_simple,
+            'label': predicted_label,
+            'distance': avg_distance,
+            'confiance': confiance
+        }
+    
+
+    def calculate_3d_descriptor(self, image_array):
+    #Calcule le vecteur 3D (les 3 descripteurs) pour une image
+        try:
+            # Axe 1 : Indice de complexité
+            axe1 = Axe1.calcul_indice_complexite(image_array, 0)
+            # Axe 2 : Analyse du remplissage
+            centroid, farthest, percentage = Axe2.analyze_image(image_array)
+            axe2 = percentage
+            # Axe 3 : Transitions sur un cercle
+            axe3 = Axe3.count_nb_transitions_along__negative_circle(
+                image_array, 
+                center=(int(centroid[1]), int(centroid[0])),
+                thickness=3
+            )
+            return [axe1, axe2, axe3]
+        except Exception as e:
+            print(f"Erreur calcul descripteur : {e}")
+            return [0, 0, 0]
 
 
 
-
-
-        #    image = [150, 0.3, 72]
-        #
-        #    # knn_n.add_point([1501, 0.3, 72], "pomme")
-        #    # knn_n.add_point([1502, 0.3, 72], "patate")
-        #    # knn_n.add_point([1503, 0.3, 72], "banane")
-        #    # knn_n.add_point([1504, 0.3, 72], "pomme")
-        #    # knn_n.add_point([1504, 0.3, 72], "pomme")
-        #    # knn_n.add_point([1504, 0.3, 72], "pomme")
-        #    knn_n.add_points(np.array([[150, 0.3, 72], [150, 0.3, 72], [200, 0.8, 50]]), np.array(["pomme", "pomme", "banane"]))
-        #
-        #    knn_n.k = 2
-        #    resultat = knn_n.predict(image)
-
-
-
-        # print(f"Image shape: {image_array.shape}")
-        # print(f"Classification avec K={k} et distance_max={dist_max}")
-        
-        # Appeler votre algorithme KNN
-        # predicted_label = your_knn_classifier.classify(image_array, k=k, dist_max=dist_max)
-        
-        # Pour tester, afficher des infos
-        # self.label_classified.text = f"Shape: {image_array.shape}"
-
-        # self.test = test1(image_array,self.klustr_dao)
-        # perimeter = test1.get_perimeter(image_array)
-        
-
-        # Ajouter vos séries de points via le KNN effectué
-        #return KNN
-        #return np.array([]) #KNN Vas planté
-        
     
     
 
@@ -1490,18 +1493,12 @@ class KnnImageClassificationWidget(QWidget):
             # Convertir en numpy array
             data_array = np.array(vectors_3d)
             
-            # print(f"   📍 {label_name}: shape={data_array.shape}")
-            # print(f"      Min: {np.min(data_array, axis=0)}")
-            # print(f"      Max: {np.max(data_array, axis=0)}")
-            # print(f"      Moy: {np.mean(data_array, axis=0)}")
-            
             # Obtenir une couleur unique pour ce label
             color = color_sequence.next()
             
             # Ajouter la série au viewer 3D
             self.viewer_3d.add_serie(data_array, color, f"Training - {label_name}")
             
-            #print(f"   ✅ Ajouté {len(vectors_3d)} points pour '{label_name}'")
 
 
 
@@ -1515,14 +1512,19 @@ class KnnImageClassificationWidget(QWidget):
         if test_vector_3d is not None:
             print(f"Vecteur 3D du test : {test_vector_3d}")
             # Afficher le point de test en 3D avec une couleur spéciale
-            self.add_test_point_3d(test_vector_3d)
+            self.add_test_point_3d(
+                test_vector_3d['vecteur_3d'], 
+                test_vector_3d['label'],
+                test_vector_3d['confiance']
+        )
         else:
             print("Aucun vecteur 3D retourné")
         
 
     @Slot()
-    def add_test_point_3d(self, vector_3d):
-        """Ajoute le point de test en 3D (en rouge vif)"""
+    def add_test_point_3d(self, vector_3d, predicted_label=None, confiance=0):
+        #Ajoute le point de test en 3D (en rouge vif)
+
         # S'assurer que c'est un numpy array 2D (1, 3)
         if isinstance(vector_3d, list):
             vector_3d = np.array(vector_3d)
@@ -1532,8 +1534,14 @@ class KnnImageClassificationWidget(QWidget):
         
         test_data = vector_3d
         test_color = QColor(255, 0, 0)  # Rouge vif pour le point de test
+
+        if predicted_label:
+            title = f"Test: {predicted_label} ({confiance*100:.0f}%)"
+        else:
+            title = "Image à classifier (non classée)"
+
         
-        self.viewer_3d.add_serie(test_data, test_color, "⭐ Image à classifier")
+        self.viewer_3d.add_serie(test_data, test_color, title)
         print(f"✅ Point de test ajouté en 3D : {test_data[0]}")
 
 
