@@ -25,7 +25,7 @@ assert "snake_case" in feature.info() and "true_property" in feature.info()
 # -----------------------------------------------------------------------------
 
 
-from color_sequence import QColorSequence
+from projet.color_sequence import QColorSequence
 
 
 

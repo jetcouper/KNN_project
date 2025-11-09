@@ -56,9 +56,9 @@ assert "snake_case" in feature.info() and "true_property" in feature.info()
 # -----------------------------------------------------------------------------
 
 
-from db_credential import PostgreSQLCredential
-from klustr_dao import PostgreSQLKlustRDAO
-from klustr_utils import QtNpConvert
+from projet.db_credential import PostgreSQLCredential
+from projet.klustr_dao import PostgreSQLKlustRDAO
+from projet.klustr_utils import QtNpConvert
 
 
 
@@ -577,7 +577,7 @@ class KlustRDataSourceViewWidget(QWidget):
 
 def main():
     app = QApplication(sys.argv)
-    credential = PostgreSQLCredential(password='Yoshi9603')
+    credential = PostgreSQLCredential(password='sBbXYmsXX7BuZ1')
     #credential = PostgreSQLCredential(password='AAAaaa123')
     # credential = PostgreSQLCredential(password='123')
     klustr_dao = PostgreSQLKlustRDAO(credential)
