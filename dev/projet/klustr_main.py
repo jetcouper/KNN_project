@@ -1574,10 +1574,10 @@ def main():
     # Afficher la fenêtre principale
     tab_widget.resize(1200, 800)
     tab_widget.show()
-    source_data_widget.show()
-    
-    
-    #ajouté pour empêcher la fermeture 
+    #source_data_widget.show()
+
+    knn_widget.ui.cmb_dataset.add_items([f"{ds[1]} [{ds[5]}][{ds[8]}]" for ds in klustr_dao.available_datasets])
+
     sys.exit(app.exec())
 
 if __name__ == '__main__':

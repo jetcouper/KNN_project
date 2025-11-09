@@ -19,7 +19,7 @@ class DBCredential(ABC):
 class PostgreSQLCredential(DBCredential):
 
     def __init__(self, 
-                 password: str = '', 
+                 password: str = 'a', 
                  host: str = 'localhost', 
                  port: int = 5432, 
                  database: str = 'postgres', 
