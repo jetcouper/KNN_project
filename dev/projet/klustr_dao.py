@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import psycopg as pg
-from klustr_utils import QtNpConvert
+from projet.klustr_utils import QtNpConvert
 
 
 

@@ -26,13 +26,13 @@ credential = PostgreSQLCredential(
     port=5432,
     database='postgres',
     user='postgres',
-    password='AAAaaa123')
+    password='sBbXYmsXX7BuZ1')
 
 # DAO 
 klustr_dao = PostgreSQLKlustRDAO(credential)
 
 # pour prendre les images il faut mettre le nom du dataset (name) ensuite specifier training ou test
-images = klustr_dao.image_from_dataset('Alpha-Narrow-Medium', training_image=False)
+images = klustr_dao.image_from_dataset('Alpha-Narrow-Large', training_image=False) #Trex-Tiny
 
 # prendre la premiere image
 img_info = images[0]
@@ -49,13 +49,12 @@ print(f"Nom : {nom_image}")
 print(f"Classe : {classe}")
 
 image_np = metrique1(bytes_png)
-image_np = 1 - image_np  # Inverser les couleurs si nécessaire
+image_np_reverse = 1 - image_np  # Inverser les couleurs si nécessaire
 
 
 
-analyse = Axe2.analyze_image(image_np)
-# Axe2.draw_circle(image_np, analyse[0], 30)
-Axe2.show(image_np, analyse, analyse[1])
+analyse = Axe2.analyze_image(image_np_reverse)
+Axe2.show(image_np, analyse)
 
 
 
