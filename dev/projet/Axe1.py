@@ -1,5 +1,5 @@
 import numpy as np 
-from math import pi
+from math import *
 
 class Axe1:
 
@@ -50,28 +50,40 @@ class Axe1:
     
     def get_perimeter_mixte(image,pt):
         image = np.array(image)
-        # y (haut ver bas), x (gauche à droite)
-        #all voisins
-        # en numpy, la position de départ est zéro 
-        # en slicing, stop est une borne exclusive, donc on ne va pas inclure l'élément 
+        # y (haut vers bas), x (gauche à droite)
+        # slicing -> start | end (exclu) 
+        # start index 0 par défaut
+        # last index = -1
        
-        #image sans border : on retire la bordure du haut et la dernière colonne, 
-        # donc on part à 1 vs 0 et on bloque les bornes avec -1
-        image_verif = image[1:-1, 1:-1] # y, x
+        #Image à analyser = sans les bordures (y = 0, x = 1) jusqu'à la fin (index:-1)
+        image_verif = image[1:-1, 1:-1] 
         
-        mask1 = (image[0:-2, 1:-1] != image_verif) & (image_verif == pt) #HAUT y-1, x
-        mask2 = (image[2:, 1:-1] != image_verif) & (image_verif == pt) #BAS y+1, x
-        mask3 = (image[1:-1, :-2] != image_verif) & (image_verif == pt) #GAUCHE
-        mask4 = (image[1:-1, 2:] != image_verif) & (image_verif == pt) #DROITE
-        # image_verif[mask1] = 3
-        # image_verif[mask2] = 2
-        # image_verif[mask3] = 5
-        # image_verif[mask4] = 4
-        #print(image_verif[mask1])
-        
-        perimeter = np.count_nonzero((mask1)) + np.count_nonzero((mask2)) + np.count_nonzero((mask3)) + np.count_nonzero((mask4))
+        # Création de masques pour chacun des voisins (va couvrir la région qu'on veut analyser)
+        # On considère toute l'image par rapport à l'image à vérifier (sans les bordures)
+        # Chaque masque vérifie que dans les cases spécifiées, il existe un voisin vide qui correspond à la bordure, donc les pts ne sont pas pareils (vide vs pt image)
 
-        return perimeter
+        mask1 = (image[0:-2, 1:-1] != image_verif) & (image_verif == pt) # HAUT (y = tout jusqu'à l'avant dernier / x = dim_x image_verif   
+        mask2 = (image[2:, 1:-1] != image_verif) & (image_verif == pt) # BAS (y = en partant de la 3e position / x = dim_x image_verif)
+        mask3 = (image[1:-1, :-2] != image_verif) & (image_verif == pt) # GAUCHE (y = dim_y img_verif / x = tout jusqu'à l'avant-dernier)
+        mask4 = (image[1:-1, 2:] != image_verif) & (image_verif == pt) # DROITE (y = dim_y img_verif / x = tout jusqu'à l'avant-dernier)
+        
+        #masque diagonaux ->  
+        hypo = np.sqrt(2) # valeur du contour => sqrt(1**2 + 1**2)
+        mask5 = (image[0:-2, 0:-2] != image_verif) & (image_verif == pt) #HAUT-GAUCHE
+        mask6 = (image[0:-2, 2:] != image_verif) & (image_verif == pt) #HAUT-DROITE
+        mask7 = (image[2:, 0:-2] != image_verif) & (image_verif == pt) #BAS-GAUCHE
+        mask8 = (image[2:, 2:] != image_verif) & (image_verif == pt) #BAS-DROITE
+
+        # puisque le masque renvoie vrai si existe (1), en faisant la sommation on peut trouver tous les points du contour
+        voisins = (np.count_nonzero((mask1)) + np.count_nonzero((mask2)) 
+                  + np.count_nonzero((mask3)) + np.count_nonzero((mask4))) 
+            
+        voisins_diagonaux = (np.count_nonzero((mask5)) + np.count_nonzero((mask6))
+                            + np.count_nonzero((mask7)) + np.count_nonzero((mask8)))
+
+        perimeter = float(voisins + hypo * (voisins_diagonaux))
+        
+        return round(perimeter, 4)
     
 image_test = [      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 
                     [0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0],
