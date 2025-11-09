@@ -784,4 +784,3 @@ class QScatter3dViewer(QWidget):
 
 
 
-
