@@ -831,7 +831,7 @@ class klustRDataset(QWidget):
         """
         # try:
             # Axe 1 : Indice de complexité
-        axe1 = Axe1.calcul_indice_complexite(image_array, 0)
+        axe1 = Axe1.calcul_indice_complexite(image_array)
         
         # Axe 2 : Analyse du remplissage
         centroid, farthest, percentage, distance = Axe2.analyze_image(image_array)
@@ -1412,7 +1412,7 @@ class klustRSingleTest(QWidget):
     #Calcule le vecteur 3D (les 3 descripteurs) pour une image
         try:
             # Axe 1 : Indice de complexité
-            axe1 = Axe1.calcul_indice_complexite(image_array, 0)
+            axe1 = Axe1.calcul_indice_complexite(image_array)
             # Axe 2 : Analyse du remplissage
             centroid, farthest, percentage, distance = Axe2.analyze_image(image_array)
             axe2 = percentage
