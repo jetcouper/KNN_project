@@ -1,7 +1,8 @@
 import sys
 import klustr_3d as Animation
-from KNN import KNNNumpy, Axe1, Axe2, Axe3
-
+from KNN import KNNNumpy, Axe3
+from Axe1 import Axe1
+from Axe2 import Axe2
 import numpy as np
 # -----------------------------------------------------------------------------
 import PySide6 
@@ -833,7 +834,7 @@ class klustRDataset(QWidget):
         axe1 = Axe1.calcul_indice_complexite(image_array, 0)
         
         # Axe 2 : Analyse du remplissage
-        centroid, farthest, percentage = Axe2.analyze_image(image_array)
+        centroid, farthest, percentage, distance = Axe2.analyze_image(image_array)
         axe2 = percentage
         
         # Axe 3 : Transitions sur un cercle
@@ -1372,7 +1373,19 @@ class klustRSingleTest(QWidget):
             dist_max = 0.5
 
         self.knn = KNNNumpy(k,dist_max, all_images_preparer,image_a_classifier)
-        predicted_label, avg_distance, confiance = self.knn.predict_image_actuelle()
+        self.axe1 = Axe1.calcul_indice_complexite(image_a_classifier,0)
+        centroid, farthest, percentage, distance = Axe2.analyze_image(image_a_classifier)
+        self.axe2 = percentage
+
+        self.axe3 = Axe3.count_nb_transitions_along__negative_circle(
+            image_a_classifier, 
+            center=(int(centroid[1]), int(centroid[0])),  # Le centroid calculé
+            thickness=3
+        )
+        self.vecteur_3d_image_simple = np.array([self.axe1, self.axe2, self.axe3])
+
+
+        predicted_label, avg_distance, confiance = self.knn.predict_image_actuelle(self.vecteur_3d_image_simple)
 
         if predicted_label is None:
             self.label_classified.text = f"Non classifié (distance trop grande: {avg_distance:.4f})"
@@ -1388,7 +1401,7 @@ class klustRSingleTest(QWidget):
 
         #Retourner le vecteur 3D ET les résultats de classification
         return {
-            'vecteur_3d': self.knn.vecteur_3d_image_simple,
+            'vecteur_3d': self.vecteur_3d_image_simple,
             'label': predicted_label,
             'distance': avg_distance,
             'confiance': confiance
@@ -1401,7 +1414,7 @@ class klustRSingleTest(QWidget):
             # Axe 1 : Indice de complexité
             axe1 = Axe1.calcul_indice_complexite(image_array, 0)
             # Axe 2 : Analyse du remplissage
-            centroid, farthest, percentage = Axe2.analyze_image(image_array)
+            centroid, farthest, percentage, distance = Axe2.analyze_image(image_array)
             axe2 = percentage
             # Axe 3 : Transitions sur un cercle
             axe3 = Axe3.count_nb_transitions_along__negative_circle(
@@ -1574,9 +1587,9 @@ def main():
     # Afficher la fenêtre principale
     tab_widget.resize(1200, 800)
     tab_widget.show()
-    #source_data_widget.show()
+    source_data_widget.show()
 
-    knn_widget.ui.cmb_dataset.add_items([f"{ds[1]} [{ds[5]}][{ds[8]}]" for ds in klustr_dao.available_datasets])
+    #knn_widget.ui.cmb_dataset.add_items([f"{ds[1]} [{ds[5]}][{ds[8]}]" for ds in klustr_dao.available_datasets])
 
     sys.exit(app.exec())
 
