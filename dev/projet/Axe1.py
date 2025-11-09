@@ -60,7 +60,7 @@ class Axe1:
         
         # Création de masques pour chacun des voisins (va couvrir la région qu'on veut analyser)
         # On considère toute l'image par rapport à l'image à vérifier (sans les bordures)
-        # Chaque mask vérifie que dans les cases spécifiées, il existe un voisin vide qui correspond à la bordure, donc les pts ne sont pas pareils (vide vs pt image)
+        # Chaque masque vérifie que dans les cases spécifiées, il existe un voisin vide qui correspond à la bordure, donc les pts ne sont pas pareils (vide vs pt image)
 
         mask1 = (image[0:-2, 1:-1] != image_verif) & (image_verif == pt) # HAUT (y = tout jusqu'à l'avant dernier / x = dim_x image_verif   
         mask2 = (image[2:, 1:-1] != image_verif) & (image_verif == pt) # BAS (y = en partant de la 3e position / x = dim_x image_verif)
