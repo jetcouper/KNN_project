@@ -52,38 +52,6 @@ class Axe1:
         
         return round(perimeter, 4)
     
-    # @staticmethod
-    # #méthode pour calculer le périmètre en py // méthode à 4 voisins
-    # def get_perimeter_(image,pt):
-    #     image = np.array(image)
-    #     dimy, dimx = image.shape
-    #     outside = int(not pt)
-    #     perimeter = 0
-
-    #     for i in range(0, dimy-1):
-    #         for j in range(0, dimx-1):
-
-    #             if image[i,j] == pt:
-    #                 # vérifier s'il y a des cases voisines
-    #                 if image[i-1,j] == outside: #voisin haut
-    #                     perimeter += 1
-    #                 if image[i, j-1] == 0: #voisin gauche
-    #                     perimeter += 1
-    #                 if image[i, j+1] == outside: #voisin droite
-    #                     perimeter += 1
-    #                 if image[i+1, j] == outside: #voisin bas 
-    #                     perimeter += 1 
-        
-    #     return perimeter
-    
-    # @staticmethod
-    # def get_perimeter_by_transitions(image,pt):
-    #     image = np.array(image)
-    #     # np.count_nonzero -> somme les éléments qui ne sont pas nuls
-    #     # np.diff -> retourne la différence entre les valeurs consécutives
-    #     transitions_y = np.count_nonzero(np.diff(image))
-    #     transitions_x = np.count_nonzero(np.diff(image.T)) 
-    #     transitions = transitions_y + transitions_x
-    #     return transitions
+   
     
     

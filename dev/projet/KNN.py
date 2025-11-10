@@ -14,8 +14,6 @@ class KNNNumpy():
         self.__all_data = np.array(self.__all_data)
         self.__all_label = np.array(self.__all_label)
 
-        
-        #self.vecteur_3d_image_simple = np.array([self.axe1, self.axe2, self.axe3])
 
 
     def predict_image_actuelle(self, image_vector):
@@ -79,6 +77,7 @@ class KNNNumpy():
 
 
         if len(tied_labels) > 1:
+            # égalité, sur le même rang
             # Cas d'ex-aequo : calculer la distance moyenne pour chaque classe ex-aequo
             best_label = None
             best_avg_distance = float('inf')
@@ -124,42 +123,4 @@ class KNNNumpy():
             return 0
         return len(self.__all_data[0])
 
-    # def calculer_vecteur_3d(image):
-    #     # Axe 1
-    #     axe1 = Axe1.calcul_indice_complexite(image, 0)
-
-    #     # Axe 2
-    #     centroid, farthest, percentage = Axe2.analyze_image(image)
-    #     axe2 = percentage
-
-    #     # Axe 3
-    #     axe3 = Axe3.count_nb_transitions_along__negative_circle(
-    #         image, 
-    #         center=(int(centroid[1]), int(centroid[0])),
-    #         thickness=3
-    #     )
-
-    #     return np.array([axe1, axe2, axe3])
-
-#if "__main__" == __name__:
-#    
-#    knn_n = KNNNumpy()
-#
-#    image = [150, 0.3, 72]
-#
-#    # knn_n.add_point([1501, 0.3, 72], "pomme")
-#    # knn_n.add_point([1502, 0.3, 72], "patate")
-#    # knn_n.add_point([1503, 0.3, 72], "banane")
-#    # knn_n.add_point([1504, 0.3, 72], "pomme")
-#    # knn_n.add_point([1504, 0.3, 72], "pomme")
-#    # knn_n.add_point([1504, 0.3, 72], "pomme")
-#    knn_n.add_points(np.array([[150, 0.3, 72], [150, 0.3, 72], [200, 0.8, 50]]), np.array(["pomme", "pomme", "banane"]))
-#
-#    knn_n.k = 2
-#    resultat = knn_n.predict(image)
-#
-#    print(knn_n.all_label)
-#    print(knn_n.all_data)
-#    
-#    print("Résultat :", resultat)
-#    print("Dimensions :", knn_n.ndim)
+    
