@@ -71,16 +71,3 @@ class Axe3:
         
         return normalized_transitions
     
-    @staticmethod
-    def analyze_with_multiple_radii(grid: np.ndarray, center: Tuple[int, int]) -> dict:
-        """
-        Teste plusieurs rayons pour voir lequel discrimine le mieux
-        Utile pour le debugging
-        """
-        results = {}
-        for ratio in [0.4, 0.5, 0.6, 0.7, 0.8]:
-            trans = Axe3.count_nb_transitions_along__negative_circle(
-                grid, center, radius_ratio=ratio, thickness=3
-            )
-            results[f"ratio_{ratio}"] = trans
-        return results
