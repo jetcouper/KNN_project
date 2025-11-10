@@ -4,14 +4,22 @@ from typing import Tuple
 
 class Axe3:
     @staticmethod
-    def count_nb_transitions_along__negative_circle(grid: np.ndarray, center: Tuple[int, int] = None, radius: float = None, thickness: int = 1) -> float:
+    def count_nb_transitions_along__negative_circle(
+        grid: np.ndarray, 
+        center: Tuple[int, int] = None, 
+        radius: float = None, 
+        thickness: int = 1,
+        radius_ratio: float = 0.6  # NOUVEAU : paramètre ajustable
+    ) -> float:
         """
-        Compte le nombre de transitions noir-blanc sur le tour d'un cercle imaginare superposé sur le centroid d'une forme donnée.
-        :param grid: np.ndarray 2d binaire représentant une forme.
-        :param center: Coordonnées (x, y) du centre du cercle imaginaire. Si non spécifié, il utilise le centre de la grille.
-        :param radius: Rayon du cercle imaginaire. Si non spécifié, il utilise 70 % de la moitié de la taille de la grille.
-        :param thickness: Épaisseur du cercle imaginaire. Chaque échantillons pris sur les 360 degrés du cercle représente la moyenne de cette épaisseur du cercle afin d'éviter des erreurs du à la faible qualité des images.
-        :return: Nombre de transitions détectés.
+        Compte le nombre de transitions noir-blanc sur le tour d'un cercle.
+        
+        :param grid: np.ndarray 2d binaire (0=forme, 1=fond)
+        :param center: Coordonnées (x, y) du centre du cercle
+        :param radius: Rayon du cercle (si None, calculé automatiquement)
+        :param thickness: Épaisseur du cercle pour moyenner les valeurs
+        :param radius_ratio: Ratio pour le calcul auto du rayon (0.5-0.8 recommandé)
+        :return: Nombre de transitions normalisé
         """
         rows, cols = grid.shape
         
@@ -19,18 +27,18 @@ class Axe3:
             center = (cols // 2, rows // 2)
         
         if radius is None:
-            radius = min(rows, cols) // 2 * 0.7
+            # Essayer différentes valeurs : 0.5, 0.6, 0.7, 0.8
+            radius = min(rows, cols) // 2 * radius_ratio
         
         cx, cy = center
         
-        # Diviser le cercle en samples pour trouver les transitions
+        # Diviser le cercle en samples
         num_samples = 360
         samples = []
         
         for i in range(num_samples):
             angle = 2 * math.pi * i / num_samples
             
-            # Faire la moyenne de l'épaisseur des samples
             total_value = 0
             valid_samples = 0
             
@@ -40,10 +48,10 @@ class Axe3:
                 y = int(cy + r * math.sin(angle))
                 
                 if 0 <= y < rows and 0 <= x < cols:
-                    total_value += grid[y, x]
+                    # Inverser : forme (0) devient 1
+                    total_value += (1 - grid[y, x])
                     valid_samples += 1
             
-            # Attribuer une valeure binaire à chaque sample selon leur moyenne
             if valid_samples > 0:
                 avg_value = total_value / valid_samples
                 samples.append(1 if avg_value >= 0.5 else 0)
@@ -59,8 +67,20 @@ class Axe3:
             if abs(current - next_sample) == 1:
                 transitions += 1
         
-        # Normaliser
-        max_transitions = num_samples
-        normalized_transitions = transitions / max_transitions
+        normalized_transitions = transitions / num_samples
         
         return normalized_transitions
+    
+    @staticmethod
+    def analyze_with_multiple_radii(grid: np.ndarray, center: Tuple[int, int]) -> dict:
+        """
+        Teste plusieurs rayons pour voir lequel discrimine le mieux
+        Utile pour le debugging
+        """
+        results = {}
+        for ratio in [0.4, 0.5, 0.6, 0.7, 0.8]:
+            trans = Axe3.count_nb_transitions_along__negative_circle(
+                grid, center, radius_ratio=ratio, thickness=3
+            )
+            results[f"ratio_{ratio}"] = trans
+        return results

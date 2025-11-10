@@ -1075,13 +1075,52 @@ class klustRParameter(QWidget):
     def about_klustrWidget(self):
         
         msgBox = QMessageBox()
-        msgBox.text = ("Ce logiciel est le projet no 1 du cours C52. \r\n Il a été réalisé par :\r\n \u0009 - Antoine Dextraze\r\n \u0009 - Alexiane Chartrand \r\n \u0009 - Laurentiu Dilion \r\n \u0009 - Irvan Nayaradou \r\n \u0009 - François Rajotte \r\n \r\n "
-        "Il consiste à faire la classification KNN d'image avec 3 dimensions avec les concepts suivants :\r\n \u0009- L'indice de complexité\r\n \u0009- Le remplissage \r\n \u0009- Le calcul de transition \r\n \r\n Nos 3 métriques pour les formes sont :\r\n"
-        " - __decripteur_1__\r\n \u0009 - en __unité__ pour le domaine __domaine__\r\n \u0009- correspondant à __courte_description__\r\n - __decripteur_2__\r\n \u0009"
-        " - en __unité__ pour le domaine __domaine__\r\n \u0009- correspondant à __courte_description__\r\n - __decripteur_3__\r\n \u0009- en __unité__ pour le domaine __domaine__"
-        "\r\n \u0009- correspondant à __courte_description__\r\n \r\n Plus précisément, ce laboratoire permet de mettre en pratique les notions de :\r\n"
-        "\u0009 - __notion_1__\r\n \u0009- __notion_n__\r\n \r\n Un effort d'abstraction a été fait pour ces points :\r\n \u0009- __point_1__\r\n \u0009- __point_n__"
-        "\r\n \r\nFinalement, l’ensemble de données le plus complexe que nous avons été capable de résoudre est\r\n :\r\n - __nom_de_l_ensemble_de_données__")
+        msgBox.text = ("Ce logiciel est le projet no 1 du cours C52.\n\n"
+        
+        "Il a été réalisé par :\n"
+        "\t• Antoine Dextraze\n"
+        "\t• Alexiane Chartrand\n"
+        "\t• Laurentiu Dilion\n"
+        "\t• Irvan Nayaradou\n"
+        "\t• François Rajotte\n\n"
+        
+        "Il consiste à faire la classification KNN d'images avec 3 dimensions "
+        "basées sur les concepts suivants :\n"
+        "\t• L'indice de complexité\n"
+        "\t• Le pourcentage de remplissage\n"
+        "\t• Le nombre de transitions\n\n"
+        "----------------------------------------------\n\n"
+
+        "Nos 3 métriques pour nos formes:\n\n"
+
+        "1. Indice de complexité (1er axe)\n"
+        "\t• Valeur entre 0 et 1 (sans unité)\n"
+        "\t• Mesure la complexité du contour d'une forme\n"
+        "\t• Formule : 1 - (4π × Aire) / Périmètre²\n"
+        "\t• Un cercle parfait donne ~0, une forme complexe donne ~1\n\n"
+
+        "2. Pourcentage de remplissage (2e axe)\n"
+        "\t• Valeur entre 0 et 1 (pourcentage normalisé)\n"
+        "\t• Mesure la compacité de la forme\n"
+        "\t• Calcule le rapport entre l'aire occupée et un cercle\n"
+        "\t  englobant le tracé depuis le centroïde\n\n"
+
+        "3. Nombre de transitions (Axe 3)\n"
+        "\t• Valeur normalisée (sans unité)\n"
+        "\t• Domaine : analyse de texture\n"
+        "\t• Compte les transitions noir-blanc sur un cercle\n"
+        "\t  imaginaire autour du centroïde\n"
+        "\t• Permet de distinguer les formes pleines des formes\n"
+        "\t  avec des découpes ou trous\n\n"
+
+        "----------------------------------------------\n\n"
+
+        
+
+
+
+
+        )
         msgBox.exec()
 
 

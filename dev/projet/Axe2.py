@@ -6,40 +6,54 @@ class Axe2:
     @staticmethod
     # Fonctions de calculs
     def area(image):
-        return np.sum(image)
+        return np.sum(image == 0)
 
     @staticmethod
     def centroid(image):
         c, r = np.meshgrid(np.arange(image.shape[1]), np.arange(image.shape[0]))
-        return (np.sum(r * image), np.sum(c * image)) / Axe2.area(image)
+        # Masque pour les pixels de la forme (valeur 0)
+        mask = (image == 0)
+        total_area = np.sum(mask)
+        
+        if total_area == 0:
+            return (image.shape[0] // 2, image.shape[1] // 2)
+        
+        cy = np.sum(r * mask) / total_area
+        cx = np.sum(c * mask) / total_area
+        return (cy, cx)
 
     @staticmethod
     def farthest_point(image, centroid):
-        y_indices, x_indices = np.nonzero(image)
+        y_indices, x_indices = np.where(image == 0)
+        
+        if len(y_indices) == 0:
+            return (0, 0), 0
+        
         distances = np.sqrt((x_indices - centroid[1])**2 + (y_indices - centroid[0])**2)
-
         max_index = np.argmax(distances)
-        return (y_indices[max_index],x_indices[max_index]), distances[max_index]
+        return (y_indices[max_index], x_indices[max_index]), distances[max_index]
 
     @staticmethod
     def filled_percentage(image, center, radius):
-        y, x = np.ogrid[-center[1]:image.shape[0]-center[1], -center[0]:image.shape[1]-center[0]]
-        mask = x**2 + y**2 <= radius**2
-
-        filled_area = np.sum(image[mask])
-        total_area = np.sum(mask)
+        y, x = np.ogrid[-center[0]:image.shape[0]-center[0], 
+                        -center[1]:image.shape[1]-center[1]]
+        mask_circle = x**2 + y**2 <= radius**2
+        
+        # Compter les pixels de la FORME (valeur 0) dans le cercle
+        filled_area = np.sum((image == 0) & mask_circle)
+        total_area = np.sum(mask_circle)
 
         if total_area == 0:
             return 0.0
         
-        return (filled_area / total_area) 
+        return (filled_area / total_area)
 
     @staticmethod
     def analyze_image(image):
-        image_reversed = 1 - image  #si non reversed a l'initial sinon retirer
-        C = Axe2.centroid(image_reversed)
-        farthest, distance = Axe2.farthest_point(image_reversed, C)
-        percentage_filled = Axe2.filled_percentage(image_reversed, C, distance)
+        #image_reversed = 1 - image  #si non reversed a l'initial sinon retirer
+        C = Axe2.centroid(image)
+        farthest, distance = Axe2.farthest_point(image, C)
+        percentage_filled = Axe2.filled_percentage(image, C, distance)
         return C, farthest, percentage_filled,distance
 
 
