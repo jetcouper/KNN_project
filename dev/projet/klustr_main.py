@@ -1072,9 +1072,10 @@ class klustRParameter(QWidget):
     
     @Slot()
     def about_klustrWidget(self):
+        
         msgBox = QMessageBox()
-        msgBox.text = ("Ce logiciel est le projet no 1 du cours C52. \r\n Il a été réalisé par :\r\n \u0009 - __étudiant_1__\r\n \u0009- __étudiant_n__ \r\n \r\n "
-        "Il consiste à faire __quelque_chose__ avec les concepts suivants :\r\n \u0009- __concept_1__\r\n \u0009- __concept_n__\r\n \r\n Nos 3 descripteurs de forme sont :\r\n"
+        msgBox.text = ("Ce logiciel est le projet no 1 du cours C52. \r\n Il a été réalisé par :\r\n \u0009 - Antoine Dextraze\r\n \u0009 - Alexiane Chartrand \r\n \u0009 - Laurentiu Dilion \r\n \u0009 - Irvan Nayaradou \r\n \u0009 - François Rajotte \r\n \r\n "
+        "Il consiste à faire la classification d'image à 3 dimension avec les concepts suivants :\r\n \u0009- L'indice de complexité\r\n \u0009- Le remplissage \r\n \u0009- Le calcule de transition \r\n \r\n Nos 3 descripteurs de forme sont :\r\n"
         " - __decripteur_1__\r\n \u0009 - en __unité__ pour le domaine __domaine__\r\n \u0009- correspondant à __courte_description__\r\n - __decripteur_2__\r\n \u0009"
         " - en __unité__ pour le domaine __domaine__\r\n \u0009- correspondant à __courte_description__\r\n - __decripteur_3__\r\n \u0009- en __unité__ pour le domaine __domaine__"
         "\r\n \u0009- correspondant à __courte_description__\r\n \r\n Plus précisément, ce laboratoire permet de mettre en pratique les notions de :\r\n"
