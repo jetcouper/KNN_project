@@ -1,8 +1,9 @@
 import sys
 import klustr_3d as Animation
-from KNN import KNNNumpy, Axe3
+from KNN import KNNNumpy
 from Axe1 import Axe1
 from Axe2 import Axe2
+from Axe3 import Axe3
 import numpy as np
 # -----------------------------------------------------------------------------
 import PySide6 
@@ -841,7 +842,7 @@ class klustRDataset(QWidget):
         axe3 = Axe3.count_nb_transitions_along__negative_circle(
             image_array, 
             center=(int(centroid[1]), int(centroid[0])),  # Centroid calculé
-            thickness=3
+            thickness=10
         )
         
         return [axe1, axe2, axe3]
