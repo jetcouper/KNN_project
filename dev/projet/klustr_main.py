@@ -842,6 +842,7 @@ class klustRDataset(QWidget):
         axe3 = Axe3.count_nb_transitions_along__negative_circle(
             image_array, 
             center=(int(centroid[1]), int(centroid[0])),  # Centroid calculé
+            radius=distance * 0.7,
             thickness=10
         )
         
@@ -1421,6 +1422,7 @@ class klustRSingleTest(QWidget):
         self.axe3 = Axe3.count_nb_transitions_along__negative_circle(
             image_a_classifier, 
             center=(int(centroid[1]), int(centroid[0])),  # Le centroid calculé
+            radius=distance * 0.7,
             thickness=3
         )
         self.vecteur_3d_image_simple = np.array([self.axe1, self.axe2, self.axe3])
@@ -1461,6 +1463,7 @@ class klustRSingleTest(QWidget):
             axe3 = Axe3.count_nb_transitions_along__negative_circle(
                 image_array, 
                 center=(int(centroid[1]), int(centroid[0])),
+                radius=distance * 0.7,
                 thickness=3
             )
             return [axe1, axe2, axe3]

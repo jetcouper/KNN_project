@@ -6,10 +6,10 @@ class Axe3:
     @staticmethod
     def count_nb_transitions_along__negative_circle(
         grid: np.ndarray, 
-        center: Tuple[int, int] = None, 
-        radius: float = None, 
+        center: Tuple[int, int], 
+        radius: float, 
         thickness: int = 1,
-        radius_ratio: float = 0.6  # NOUVEAU : paramètre ajustable
+        radius_ratio: float = 0.6
     ) -> float:
         """
         Compte le nombre de transitions noir-blanc sur le tour d'un cercle.
@@ -22,13 +22,6 @@ class Axe3:
         :return: Nombre de transitions normalisé
         """
         rows, cols = grid.shape
-        
-        if center is None:
-            center = (cols // 2, rows // 2)
-        
-        if radius is None:
-            # Essayer différentes valeurs : 0.5, 0.6, 0.7, 0.8
-            radius = min(rows, cols) // 2 * radius_ratio
         
         cx, cy = center
         
