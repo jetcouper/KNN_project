@@ -1075,7 +1075,7 @@ class klustRParameter(QWidget):
         
         msgBox = QMessageBox()
         msgBox.text = ("Ce logiciel est le projet no 1 du cours C52. \r\n Il a été réalisé par :\r\n \u0009 - Antoine Dextraze\r\n \u0009 - Alexiane Chartrand \r\n \u0009 - Laurentiu Dilion \r\n \u0009 - Irvan Nayaradou \r\n \u0009 - François Rajotte \r\n \r\n "
-        "Il consiste à faire la classification d'image à 3 dimension avec les concepts suivants :\r\n \u0009- L'indice de complexité\r\n \u0009- Le remplissage \r\n \u0009- Le calcule de transition \r\n \r\n Nos 3 descripteurs de forme sont :\r\n"
+        "Il consiste à faire la classification KNN d'image avec 3 dimensions avec les concepts suivants :\r\n \u0009- L'indice de complexité\r\n \u0009- Le remplissage \r\n \u0009- Le calcul de transition \r\n \r\n Nos 3 métriques pour les formes sont :\r\n"
         " - __decripteur_1__\r\n \u0009 - en __unité__ pour le domaine __domaine__\r\n \u0009- correspondant à __courte_description__\r\n - __decripteur_2__\r\n \u0009"
         " - en __unité__ pour le domaine __domaine__\r\n \u0009- correspondant à __courte_description__\r\n - __decripteur_3__\r\n \u0009- en __unité__ pour le domaine __domaine__"
         "\r\n \u0009- correspondant à __courte_description__\r\n \r\n Plus précisément, ce laboratoire permet de mettre en pratique les notions de :\r\n"
@@ -1472,12 +1472,9 @@ class KnnImageClassificationWidget(QWidget):
         self.uiDataset.cmb_dataset.currentIndexChanged.connect(
             self.uiSingleTest.update_images_from_dataset
         )
-        #self.viewer_3d.add_serie
         
 
         self.uiSingleTest.btn_classify.clicked.connect(self.on_classify_clicked)
-        # Fixer la largeur du panneau de contrôle
-        #self.control_widget.set_fixed_width(390)
 
         
         # Layout horizontal : contrôles à gauche, viewer 3D à droite
@@ -1485,7 +1482,6 @@ class KnnImageClassificationWidget(QWidget):
         layout.add_widget(self.control_widget,1)
         layout.add_widget(self.viewer_3d , 2)
         layout.contents_margins = (QMargins(0, 0, 0, 0))
-        #self.uiSingleTest.btn_classify.clicked.disconnect()
         
 
     @Slot(dict)
@@ -1564,8 +1560,8 @@ def main():
     app = QApplication(sys.argv)
 
     #A changer selon votre configuration d'ordinateur
-    credential = PostgreSQLCredential(password='Yoshi9603')
-    #credential = PostgreSQLCredential(password='AAAaaa123')
+    #credential = PostgreSQLCredential(password='Yoshi9603')
+    credential = PostgreSQLCredential(password='AAAaaa123')
     # credential = PostgreSQLCredential(password='123')
 
 
