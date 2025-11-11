@@ -20,7 +20,6 @@ r = Rayon du plus grand segment entre le centroide et tous les points du périm�
 ## 3 matrice
 cercle donut
 
-## Autres matrices (À voir)
 
 
 

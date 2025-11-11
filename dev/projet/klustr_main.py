@@ -550,77 +550,6 @@ class KlustRDataSourceViewWidget(QWidget):
 #FENÊTRE KNN
 #---------------------------------------------------
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class KlustRDatasetItem(QStandardItem):
     def __init__(self, id, name, translated='', rotated='', scaled='', label_count='', training_image_count='', test_image_count=''):
         super().__init__(name)
@@ -909,10 +838,6 @@ class klustRDataset(QWidget):
     def update_datasets(self, klustr_dao):
         self.dataset_model.clear()
         
-        # Ajouter "Tous les datasets"
-        #item = KlustRDatasetItem(-1, 'Toutes les images')
-        #self.dataset_model.append_row(item)
-        
         # Ajouter les datasets
         for dataset in klustr_dao.available_datasets:
             item = KlustRDatasetItem(
@@ -1043,7 +968,7 @@ class klustRParameter(QWidget):
 
 
 
-    @Slot()
+    @Slot() #Texte par défaut
     def retranslateUi(self, klustrDataWidget):
         klustrDataWidget.set_window_role = "klustrDataWidget"
         self.grb_parametre.title = "Paramètres Knn"
@@ -1085,14 +1010,14 @@ class klustRParameter(QWidget):
         "\t• Irvan Nayaradou\n"
         "\t• François Rajotte\n\n"
         
-        "Il consiste à faire la classification KNN d'images avec 3 dimensions "
+        "Il consiste à faire la classification KNN d'images avec les concepts suivants: "
         "basées sur les concepts suivants :\n"
         "\t• L'indice de complexité\n"
         "\t• Le pourcentage de remplissage\n"
         "\t• Le nombre de transitions\n\n"
-        "----------------------------------------------\n\n"
+        "----------------------------------------------\n"
 
-        "Nos 3 métriques pour nos formes:\n\n"
+        "Nos 3 descripteurs de formes sont:\n\n"
 
         "1. Indice de complexité (1er axe)\n"
         "\t• Valeur entre 0 et 1 (sans unité)\n"
@@ -1104,7 +1029,7 @@ class klustRParameter(QWidget):
         "\t• Valeur entre 0 et 1 (pourcentage normalisé)\n"
         "\t• Mesure la compacité de la forme\n"
         "\t• Calcule le rapport entre l'aire occupée et un cercle\n"
-        "\t  englobant le tracé depuis le centroïde\n\n"
+        "\t  englobant le tracé depuis le centroïde\n"
 
         "3. Nombre de transitions (Axe 3)\n"
         "\t• Valeur normalisée (sans unité)\n"
@@ -1112,12 +1037,30 @@ class klustRParameter(QWidget):
         "\t• Compte les transitions noir-blanc sur un cercle\n"
         "\t  imaginaire autour du centroïde\n"
         "\t• Permet de distinguer les formes pleines des formes\n"
-        "\t  avec des découpes ou trous\n\n"
+        "\t  avec des découpes ou trous\n"
 
-        "----------------------------------------------\n\n"
+        "----------------------------------------------\n"
 
-        
+        "Plus précisément, ce laboratoire permet de mettre en pratique les notions de :\n\n"
+        "\t• Algorithme de classification supervisée (KNN)\n"
+        "\t• Traitement et analyse d'images avec NumPy\n"
+        "\t• Réduction de dimensionnalité (22 500 pixels → 3 métriques)\n"
+        "\t• Développement d'interfaces graphiques avec Qt\n"
+        "\t• Accès aux bases de données (PostgreSQL)\n"
+        "\t• Programmation orientée objet en Python\n"
+        "\t• Calcule géometrique avec Numpy.\n"
 
+        "----------------------------------------------\n"
+        "Un effort d'abstraction a été fait pour ces points :\n"
+        "\t• Classe KNN Numpy générique et réutilisable ailleur.\n"
+        "\t• La séparation des trois axes de calculs dans des classes indépendantes.\n"
+        "\t• L'architechure séparer (DAO, logique métier, interface).\n"
+        "\t• Gestion des limites distance max.\n\n"
+        "----------------------------------------------\n"
+
+        "Finalement, l'ensemble de données le plus complexe que nous avons\n"
+        "été capables de résoudre est :\n"
+        "\t• [Zoo-Large]"
 
 
 
@@ -1159,7 +1102,6 @@ class klustRSingleTest(QWidget):
 
 
         self.btn_classify = QPushButton()
-        #self.btn_classify.clicked.connect(self.classify_current_image)
         self.layout_simple_test.add_widget(self.btn_classify)
 
         self.label_classified = QLabel()
@@ -1190,7 +1132,7 @@ class klustRSingleTest(QWidget):
             return
 
         try:
-           #Pour temporairement modifier le cmb_image
+           #Deconnection pour temporairement modifier le cmb_image
            self.cmb_image.currentIndexChanged.disconnect(self.update_image_display)
         except:
            pass  # Ignorer si déjà déconnecté
@@ -1312,7 +1254,7 @@ class klustRSingleTest(QWidget):
 
     
     # fabrication du UI
-    @Slot()
+    @Slot() #Texte par défaut
     def retranslateUi(self, klustrDataWidget):
         klustrDataWidget.set_window_role = "klustrDataWidget"
         self.grb_simple_test.title = "Teste simple"
@@ -1386,6 +1328,7 @@ class klustRSingleTest(QWidget):
                     continue
                  
                 image_array = QtNpConvert.np_from_qimage(qimage)
+                #Retourne le vecteur 3D avec les 3 axes
                 vecteur_3d = self.calculate_3d_descriptor(image_array)
 
 
@@ -1603,8 +1546,8 @@ def main():
     app = QApplication(sys.argv)
 
     #A changer selon votre configuration d'ordinateur
-    #credential = PostgreSQLCredential(password='Yoshi9603')
-    credential = PostgreSQLCredential(password='AAAaaa123')
+    credential = PostgreSQLCredential(password='Yoshi9603')
+    #credential = PostgreSQLCredential(password='AAAaaa123')
     # credential = PostgreSQLCredential(password='123')
 
 
@@ -1614,7 +1557,7 @@ def main():
     tab_widget = QTabWidget()
     tab_widget.window_title = "KlustR KNN Classifier"
     
-    # Première vue : KlustR Source Viewer
+    # Première vue : KlustR Source Viewer (Du prof)
     source_data_widget = KlustRDataSourceViewWidget(klustr_dao)
     
     # Deuxième vue : KNN Classification 3D
@@ -1628,8 +1571,6 @@ def main():
     tab_widget.resize(1200, 800)
     tab_widget.show()
     source_data_widget.show()
-
-    #knn_widget.ui.cmb_dataset.add_items([f"{ds[1]} [{ds[5]}][{ds[8]}]" for ds in klustr_dao.available_datasets])
 
     sys.exit(app.exec())
 

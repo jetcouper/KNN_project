@@ -101,10 +101,6 @@ class KNNNumpy():
         # Plus la distance est petite par rapport à dist_max, plus la confiance est élevée
         confiance = max(0, 1 - (avg_distance / self.__dist_max))
 
-
-
-
-
         return predicted_label, avg_distance, confiance
 
     @property
